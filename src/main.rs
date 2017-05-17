@@ -11,6 +11,12 @@ use std::time::Instant;
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
 
+#[derive(PartialEq)]
+enum Mouse {
+    Released,
+    Pressed,
+}
+
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 2] = "position",
@@ -76,38 +82,66 @@ fn main() {
         frag_color: main_color,
     };
 
-    let mut running = true;
+    let mut last_mouse = Mouse::Released;
+    let mut current_mouse = Mouse::Released;
+
+    let (mut mx, mut my) = (0.0, 0.0);
+
+    let mut xyzw = [0.0; 4];
 
     let start_time = Instant::now();
 
-    while running {
+    loop {
         for event in window.poll_events() {
             match event {
-                glutin::Event::KeyboardInput(_, _, Some(glutin::VirtualKeyCode::Escape)) => {
-                    running = false;
+                glutin::Event::KeyboardInput(_, _, Some(glutin::VirtualKeyCode::Escape)) |
+                glutin::Event::Closed => {
+                    return;
                 },
 
-                glutin::Event::MouseMoved(x,y) => {
-                    // TODO: Get zw-components too
-                    data.i_mouse[0] = x as f32;
-                    data.i_mouse[1] = hf - y as f32; // Flip y-axis
+                glutin::Event::MouseMoved(x, y) => {
+                    mx = x as f32;
+                    my = hf - y as f32; // Flip y-axis
                 },
+
+                glutin::Event::MouseInput(state, button) => {
+                    last_mouse = current_mouse;
+                    if state == glutin::ElementState::Pressed && button == glutin::MouseButton::Left {
+                        current_mouse = Mouse::Pressed;
+                    } else {
+                        current_mouse = Mouse::Released;
+                    }
+                }
 
                 _ => ()
             }
         }
 
+        // Mouse
+        if current_mouse == Mouse::Pressed {
+            xyzw[0] = mx;
+            xyzw[1] = my;
+            if last_mouse == Mouse::Released {
+                xyzw[2] = mx;
+                xyzw[3] = my;
+            }
+        } else {
+            xyzw[2] = 0.0;
+            xyzw[3] = 0.0;
+        }
+        data.i_mouse = xyzw;
+
+        // Elapsed time
         let elapsed = start_time.elapsed();
         let elapsed_ms = (elapsed.as_secs() * 1000) + (elapsed.subsec_nanos()/1000000) as u64;
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
 
+        // Draw
         encoder.clear(&data.frag_color, CLEAR_COLOR);
         encoder.draw(&slice, &pso, &data);
         encoder.flush(&mut device);
-
         window.swap_buffers().unwrap();
-
         device.cleanup();
     }
 }
