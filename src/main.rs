@@ -60,7 +60,7 @@ fn main() {
                     .with_dimensions(w, h)
                     .with_vsync();
 
-    let (window, mut device, mut factory, main_color, _) =
+    let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
 
     let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
@@ -100,6 +100,10 @@ fn main() {
                 glutin::Event::Closed => {
                     return;
                 },
+
+                glutin::Event::Resized(_, _) => {
+                    gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+                }
 
                 glutin::Event::MouseMoved(x, y) => {
                     mx = x as f32;
