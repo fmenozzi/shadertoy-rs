@@ -1,12 +1,19 @@
 #[macro_use]
+extern crate clap;
+#[macro_use]
 extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
+
+use clap::App;
 
 use gfx::traits::FactoryExt;
 use gfx::Device;
 
 use std::time::Instant;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
@@ -52,7 +59,30 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 fn main() {
-    let (mut w, mut h) = (600.0, 400.0);
+    let yaml = load_yaml!("cli.yml");
+    let matches = App::from_yaml(yaml).get_matches();
+
+    let mut w: f32 = matches.value_of("width").unwrap().parse().expect("Invalid width specified");
+    let mut h: f32 = matches.value_of("height").unwrap().parse().expect("Invalid height specified");
+
+    // Read fragment shader from file into byte buffer
+    let shaderpath = matches.value_of("shader").unwrap();
+    let mut shader_src_buf = Vec::new();
+    match File::open(&Path::new(shaderpath)) {
+        Ok(mut file) => {
+            match file.read_to_end(&mut shader_src_buf) {
+                Ok(_) => {},
+                Err(e) => {
+                    println!("Error reading from {}: {}", shaderpath, e);
+                    return;
+                }
+            }
+        },
+        Err(e) => {
+            println!("Error opening file {}: {}", shaderpath, e);
+            return;
+        }
+    }
 
     let builder = glutin::WindowBuilder::new()
                     .with_title("Hello, gfx-rs!")
@@ -66,7 +96,7 @@ fn main() {
 
     let pso = factory.create_pipeline_simple(
         include_bytes!("shaders/default.vert"),
-        include_bytes!("shaders/default.frag"),
+        shader_src_buf.as_slice(),
         pipe::new()
     ).expect("Error creating pipeline");
 

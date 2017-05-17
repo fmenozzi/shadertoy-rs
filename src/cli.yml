@@ -1,0 +1,24 @@
+name: shadertoy-rs
+version: "0.1.0"
+author: Federico Menozzi <federicogmenozzi@gmail.com>
+about: Desktop client for Shadertoy
+args:
+    - width:
+        short: W
+        long: width
+        takes_value: true
+        default_value: "600"
+        help: Sets window width
+    - height:
+        short: H
+        long: height
+        takes_value: true
+        default_value: "400"
+        help: Sets window height
+    - shader:
+        short: s
+        long: shader
+        takes_value: true
+        index: 1
+        default_value: "src/shaders/default.frag"
+        help: Path to fragment shader
