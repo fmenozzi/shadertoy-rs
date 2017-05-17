@@ -52,12 +52,11 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 fn main() {
-    let (w, h) = (600, 400);
-    let (wf, hf) = (w as f32, h as f32);
+    let (mut w, mut h) = (600.0, 400.0);
 
     let builder = glutin::WindowBuilder::new()
                     .with_title("Hello, gfx-rs!")
-                    .with_dimensions(w, h)
+                    .with_dimensions(w as u32, h as u32)
                     .with_vsync();
 
     let (window, mut device, mut factory, main_color, mut main_depth) =
@@ -77,7 +76,7 @@ fn main() {
         vbuf: vertex_buffer,
 
         i_global_time: 0.0,
-        i_resolution: [wf, hf, wf/hf],
+        i_resolution: [w, h, w/h],
         i_mouse: [0.0; 4],
         i_frame: -1,
 
@@ -101,13 +100,16 @@ fn main() {
                     return;
                 },
 
-                glutin::Event::Resized(_, _) => {
+                glutin::Event::Resized(new_w, new_h) => {
                     gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+
+                    w = new_w as f32;
+                    h = new_h as f32;
                 }
 
                 glutin::Event::MouseMoved(x, y) => {
                     mx = x as f32;
-                    my = hf - y as f32; // Flip y-axis
+                    my = h - y as f32; // Flip y-axis
                 },
 
                 glutin::Event::MouseInput(state, button) => {
@@ -142,6 +144,9 @@ fn main() {
         let elapsed_ms = (elapsed.as_secs() * 1000) + (elapsed.subsec_nanos()/1000000) as u64;
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
+
+        // Resolution
+        data.i_resolution = [w, h, w/h];
 
         // Frame
         data.i_frame += 1;
