@@ -1,0 +1,9 @@
+[package]
+name = "shadertoy-rs"
+version = "0.1.0"
+authors = ["Federico Menozzi <federicogmenozzi@gmail.com>"]
+
+[dependencies]
+gfx = "0.14"
+gfx_window_glutin = "0.14"
+glutin = "0.7"
