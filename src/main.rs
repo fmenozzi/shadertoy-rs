@@ -85,7 +85,7 @@ fn main() {
     }
 
     let builder = glutin::WindowBuilder::new()
-                    .with_title("Hello, gfx-rs!")
+                    .with_title("shadertoy-rs")
                     .with_dimensions(w as u32, h as u32)
                     .with_vsync();
 
