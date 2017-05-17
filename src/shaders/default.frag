@@ -3,6 +3,7 @@
 uniform float iGlobalTime;
 uniform vec3  iResolution;
 uniform vec4  iMouse;
+uniform int   iFrame;
 
 in vec2 fragCoord;
 out vec4 fragColor;
