@@ -7,6 +7,8 @@ cargo run --example seascape
 cargo run --example elemental-ring
 ```
 
+You can press `F5` to reload the shader if you've edited it since launching the app.
+
 For now, the CLI looks like this:
 
 ```
