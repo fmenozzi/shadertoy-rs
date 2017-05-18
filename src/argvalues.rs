@@ -4,6 +4,7 @@ pub struct ArgValues {
     pub width: f32,
     pub height: f32,
     pub shaderpath: String,
+    pub not_from_shadertoy: bool,
 }
 
 impl ArgValues {
@@ -29,18 +30,23 @@ impl ArgValues {
         // Shader filepath
         let shaderpath = matches.value_of("shader").unwrap().to_string();
 
+        // From Shadertoy?
+        let not_from_shadertoy = matches.is_present("not_from_shadertoy");
+
         Ok(ArgValues {
             width: width,
             height: height,
             shaderpath: shaderpath,
+            not_from_shadertoy: not_from_shadertoy,
         })
     }
 
-    pub fn from_values(width: f32, height: f32, shaderpath: &str) -> ArgValues {
+    pub fn from_values(width: f32, height: f32, shaderpath: &str, not_from_shadertoy: bool) -> ArgValues {
         ArgValues {
             width: width,
             height: height,
             shaderpath: shaderpath.to_string(),
+            not_from_shadertoy: not_from_shadertoy,
         }
     }
 }

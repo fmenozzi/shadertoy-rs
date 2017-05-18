@@ -6,16 +6,6 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 -Otavio Good
 */
 
-#version 150 core
-
-uniform float iGlobalTime;
-uniform vec3  iResolution;
-uniform vec4  iMouse;
-uniform int   iFrame;
-
-out vec4 fragColor;
-in vec2 fragCoord;
-
 // ---------------- Config ----------------
 // This is an option that lets you render high quality frames for screenshots. It enables
 // stochastic antialiasing and motion blur automatically for any shader.
@@ -88,8 +78,8 @@ float smin( float a, float b, float k )
 
 vec2 matMin(vec2 a, vec2 b)
 {
-    if (a.x < b.x) return a;
-    else return b;
+	if (a.x < b.x) return a;
+	else return b;
 }
 
 // ---- shapes defined by distance fields ----
@@ -160,23 +150,23 @@ vec2 DistanceToObject(vec3 p)
 vec3 RayTrace(in vec2 fragCoord )
 {
     glow = 0.0;
-    // -------------------------------- animate ---------------------------------------
-    vec3 camPos, camUp, camLookat;
-    // ------------------- Set up the camera rays for ray marching --------------------
+	// -------------------------------- animate ---------------------------------------
+	vec3 camPos, camUp, camLookat;
+	// ------------------- Set up the camera rays for ray marching --------------------
     // Map uv to [-1.0..1.0]
-    vec2 uv = fragCoord.xy/iResolution.xy * 2.0 - 1.0;
+	vec2 uv = fragCoord.xy/iResolution.xy * 2.0 - 1.0;
     float zoom = 2.2;
     uv /= zoom;
 
     // Camera up vector.
-    camUp=vec3(0,1,0);
+	camUp=vec3(0,1,0);
 
-    // Camera lookat.
-    camLookat=vec3(0);
+	// Camera lookat.
+	camLookat=vec3(0);
 
     // debugging camera
     float mx=iMouse.x/iResolution.x*PI*2.0;
-    float my=-iMouse.y/iResolution.y*10.0;
+	float my=-iMouse.y/iResolution.y*10.0;
 #ifndef MANUAL_CAMERA
     camPos = vec3(0.0);
     camPos.y = sin(localTime*0.125)*3.0;
@@ -185,25 +175,25 @@ vec3 RayTrace(in vec2 fragCoord )
     camUp.z = -camPos.y;
     camUp = normalize(camUp);
 #else
-    camPos = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx))*3.0;
+	camPos = vec3(cos(my)*cos(mx),sin(my),cos(my)*sin(mx))*3.0;
 #endif
 
-    // Camera setup.
-    vec3 camVec=normalize(camLookat - camPos);
-    vec3 sideNorm=normalize(cross(camUp, camVec));
-    vec3 upNorm=cross(camVec, sideNorm);
-    vec3 worldFacing=(camPos + camVec);
-    vec3 worldPix = worldFacing + uv.x * sideNorm * (iResolution.x/iResolution.y) + uv.y * upNorm;
-    vec3 rayVec = normalize(worldPix - camPos);
+	// Camera setup.
+	vec3 camVec=normalize(camLookat - camPos);
+	vec3 sideNorm=normalize(cross(camUp, camVec));
+	vec3 upNorm=cross(camVec, sideNorm);
+	vec3 worldFacing=(camPos + camVec);
+	vec3 worldPix = worldFacing + uv.x * sideNorm * (iResolution.x/iResolution.y) + uv.y * upNorm;
+	vec3 rayVec = normalize(worldPix - camPos);
 
-    // ----------------------------- Ray march the scene ------------------------------
-    vec2 distMat = vec2(1.0, 0.0);
-    float t = 0.0 + Hash2d(uv)*1.6;	// random dither glow by moving march count start position
-    const float maxDepth = 6.0; // farthest distance rays will travel
-    vec3 pos = vec3(0,0,0);
+	// ----------------------------- Ray march the scene ------------------------------
+	vec2 distMat = vec2(1.0, 0.0);
+	float t = 0.0 + Hash2d(uv)*1.6;	// random dither glow by moving march count start position
+	const float maxDepth = 6.0; // farthest distance rays will travel
+	vec3 pos = vec3(0,0,0);
     const float smallVal = 0.000625;
     float marchCount = 0.0;
-    // ray marching time
+	// ray marching time
     for (int i = 0; i < 80; i++)	// This is the count of the max times the ray actually marches.
     {
         // Step along the ray.
@@ -230,29 +220,29 @@ vec3 RayTrace(in vec2 fragCoord )
         marchCount += cyc / (distMat.x * distMat.x + 1.0);
     }
 
-    // --------------------------------------------------------------------------------
-    // Now that we have done our ray marching, let's put some color on this geometry.
+	// --------------------------------------------------------------------------------
+	// Now that we have done our ray marching, let's put some color on this geometry.
 
     // Save off ray-march glows so they don't get messed up when we call the distance
     // function again to get the normal
-    float glowSave = glow;
+	float glowSave = glow;
     float marchSave = marchCount;
     marchCount = 0.0;
     glow = 0.0;
 
     // default to blueish background color.
-    vec3 finalColor = vec3(0.09, 0.15, 0.35);
+	vec3 finalColor = vec3(0.09, 0.15, 0.35);
 
-    // If a ray actually hit the object, let's light it.
+	// If a ray actually hit the object, let's light it.
     if (t <= maxDepth)
-    {
+	{
         // calculate the normal from the distance field. The distance field is a volume, so if you
         // sample the current point and neighboring points, you can use the difference to get
         // the normal.
         vec3 smallVec = vec3(smallVal, 0, 0);
         vec3 normalU = vec3(distMat.x - DistanceToObject(pos - smallVec.xyy).x,
-                distMat.x - DistanceToObject(pos - smallVec.yxy).x,
-                distMat.x - DistanceToObject(pos - smallVec.yyx).x);
+                           distMat.x - DistanceToObject(pos - smallVec.yxy).x,
+                           distMat.x - DistanceToObject(pos - smallVec.yyx).x);
 
         vec3 texColor = vec3(0.0, 0.0, 0.1);
         if (distMat.y < 0.0) texColor = vec3(0.6, 0.3, 0.1)*110.0;
@@ -260,7 +250,7 @@ vec3 RayTrace(in vec2 fragCoord )
         finalColor = texColor;
         // visualize length of gradient of distance field to check distance field correctness
         //finalColor = vec3(0.5) * (length(normalU) / smallVec.x);
-    }
+	}
     // add the ray marching glows
     finalColor += vec3(0.3, 0.5, 0.9) * glowSave*0.00625;
     finalColor += vec3(1.0, 0.5, 0.3) * marchSave*0.05;
@@ -268,8 +258,8 @@ vec3 RayTrace(in vec2 fragCoord )
     // vignette
     finalColor *= vec3(1.0) * saturate(1.0 - length(uv/2.5));
 
-    // output the final color without gamma correction - will do gamma later.
-    return vec3(saturate(finalColor));
+	// output the final color without gamma correction - will do gamma later.
+	return vec3(saturate(finalColor));
 }
 
 #ifdef NON_REALTIME_HQ_RENDER
@@ -296,16 +286,17 @@ void BlockRender(in vec2 fragCoord)
     float blockY = fract(floor(frame / blockRes.x) / blockRes.y) * blockRes.y;
     // Don't draw anything outside the current block.
     if ((fragCoord.x - blockX * blockSize >= blockSize) ||
-            (fragCoord.x - (blockX - 1.0) * blockSize < blockSize) ||
-            (fragCoord.y - blockY * blockSize >= blockSize) ||
-            (fragCoord.y - (blockY - 1.0) * blockSize < blockSize))
+    	(fragCoord.x - (blockX - 1.0) * blockSize < blockSize) ||
+    	(fragCoord.y - blockY * blockSize >= blockSize) ||
+    	(fragCoord.y - (blockY - 1.0) * blockSize < blockSize))
     {
         discard;
     }
 }
 #endif
 
-void main() {
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
 #ifdef NON_REALTIME_HQ_RENDER
     // Optionally render a non-realtime scene with high quality
     BlockRender(fragCoord);
@@ -318,20 +309,20 @@ void main() {
     {
         const float motionBlurLengthInSeconds = 1.0 / 60.0;
         // Set this to the time in seconds of the frame to render.
-        localTime = frameToRenderHQ;
+	    localTime = frameToRenderHQ;
         // This line will motion-blur the renders
         localTime += Hash11(v21(fragCoord + seed)) * motionBlurLengthInSeconds;
         // Jitter the pixel position so we get antialiasing when we do multiple passes.
         vec2 jittered = fragCoord.xy + vec2(
-                Hash21(fragCoord + seed),
-                Hash21(fragCoord*7.234567 + seed)
-                );
+            Hash21(fragCoord + seed),
+            Hash21(fragCoord*7.234567 + seed)
+            );
         // don't antialias if only 1 sample.
         if (antialiasingSamples == 1.0) jittered = fragCoord;
         // Accumulate one pass of raytracing into our pixel value
-        finalColor += RayTrace(jittered);
+	    finalColor += RayTrace(jittered);
         // Change the random seed for each pass.
-        seed *= 1.01234567;
+	    seed *= 1.01234567;
     }
     // Average all accumulated pixel intensities
     finalColor /= antialiasingSamples;
@@ -343,3 +334,6 @@ void main() {
 
     fragColor = vec4(sqrt(clamp(finalColor, 0.0, 1.0)),1.0);
 }
+
+
+

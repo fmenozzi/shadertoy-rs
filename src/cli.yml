@@ -15,6 +15,10 @@ args:
         takes_value: true
         default_value: "400"
         help: Sets window height
+    - not_from_shadertoy:
+        short: n
+        long: --not-from-shadertoy
+        help: For shaders not copy-pasted from Shadertoy
     - shader:
         short: s
         long: shader

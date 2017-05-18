@@ -56,21 +56,46 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 pub fn run(av: &ArgValues) -> Result<(), String> {
-    let ArgValues{mut width, mut height, ref shaderpath} = *av;
+    let ArgValues{mut width, mut height, ref shaderpath, not_from_shadertoy} = *av;
 
-    // Read fragment shader from file into byte buffer
-    let mut frag_src_buf = Vec::new();
+    // Read fragment shader from file into String buffer and add
+    // prefix/suffix to shader source if necessary
+    let mut frag_src_str = String::new();
     match File::open(&Path::new(&shaderpath)) {
         Ok(mut file) => {
-            if let Err(e) = file.read_to_end(&mut frag_src_buf) {
-                return Err(format!("Error reading from {}: {}", shaderpath, e));
+            if let Err(e) = file.read_to_string(&mut frag_src_str) {
+                return Err(format!("Error reading from '{}': {}", shaderpath, e));
             }
         },
         Err(e) => {
-            return Err(format!("Error opening file {}: {}", shaderpath, e));
+            return Err(format!("Error opening file '{}': {}", shaderpath, e));
         }
     }
-    let frag_src_buf = frag_src_buf.as_slice();
+    let (prefix, suffix) = if not_from_shadertoy {
+        ("", "")
+    } else {
+        let prefix = "
+            #version 150 core
+
+            uniform float iGlobalTime;
+            uniform vec3  iResolution;
+            uniform vec4  iMouse;
+            uniform int   iFrame;
+
+            in vec2 fragCoord;
+            out vec4 fragColor;
+        ";
+
+        let suffix = "
+            void main() {
+                mainImage(fragColor, fragCoord);
+            }
+        ";
+
+        (prefix, suffix)
+    };
+    let frag_src_str = format!("{}\n{}\n{}", prefix, frag_src_str, suffix);
+    let frag_src_buf = frag_src_str.as_bytes();
 
     // Read default vertex shader from file into byte buffer
     let vert_src_buf = include_bytes!("../shaders/default.vert");
