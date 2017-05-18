@@ -77,7 +77,7 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
 
     let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
 
-    let pipeline;
+    let mut pipeline;
     match factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new()) {
         Ok(p)  => pipeline = p,
         Err(e) => return Err(format!("Error creating pipeline: {}", e)),
@@ -103,7 +103,7 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
 
     let mut xyzw = [0.0; 4];
 
-    let start_time = Instant::now();
+    let mut start_time = Instant::now();
 
     loop {
         for event in window.poll_events() {
@@ -113,7 +113,28 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
                 },
 
                 Event::KeyboardInput(ElementState::Pressed, _, Some(VirtualKeyCode::F5)) => {
-                    println!("Reload!");
+                    // Reload fragment shader into byte buffer
+                    let frag_src_res = loader::load_fragment_shader(&av);
+                    let frag_src_buf: Vec<u8>;
+                    match frag_src_res {
+                        Ok(fsbuf) => frag_src_buf = fsbuf,
+                        Err(fse)  => return Err(format!("Error reloading fragment shader: {}", fse)),
+                    }
+                    let frag_src_buf = frag_src_buf.as_slice();
+
+                    // Recreate pipeline
+                    match factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new()) {
+                        Ok(p)  => pipeline = p,
+                        Err(e) => return Err(format!("Error recreating pipeline: {}", e)),
+                    }
+
+                    // Reset uniforms
+                    data.i_global_time = 0.0;
+                    data.i_resolution = [width, height, width/height];
+                    data.i_mouse = [0.0; 4];
+                    data.i_frame = -1;
+
+                    start_time = Instant::now();
                 },
 
                 Event::Resized(new_width, new_height) => {
