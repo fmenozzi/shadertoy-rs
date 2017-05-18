@@ -20,5 +20,5 @@ args:
         long: shader
         takes_value: true
         index: 1
-        default_value: "src/shaders/default.frag"
+        default_value: "shaders/default.frag"
         help: Path to fragment shader

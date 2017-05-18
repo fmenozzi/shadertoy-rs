@@ -92,7 +92,7 @@ pub fn run() {
     let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
 
     let pso = factory.create_pipeline_simple(
-        include_bytes!("shaders/default.vert"),
+        include_bytes!("../shaders/default.vert"),
         shader_src_buf.as_slice(),
         pipe::new()
         ).expect("Error creating pipeline");
