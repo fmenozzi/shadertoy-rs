@@ -9,6 +9,8 @@ use gfx_window_glutin;
 use gfx::traits::FactoryExt;
 use gfx::Device;
 
+use glutin::{VirtualKeyCode, ElementState, MouseButton, Event};
+
 use std::time::Instant;
 
 type ColorFormat = gfx::format::Rgba8;
@@ -57,8 +59,8 @@ const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 pub fn run(av: &ArgValues) -> Result<(), String> {
     let ArgValues{mut width, mut height, ..} = *av;
 
+    // Load vertex and fragment shaders into byte buffers
     let (vert_src_res, frag_src_res) = loader::load_shaders(&av);
-
     let (vert_src_buf, frag_src_buf): (Vec<u8>, Vec<u8>);
     match (vert_src_res, frag_src_res) {
         (Ok(vsbuf), Ok(fsbuf)) => {
@@ -112,31 +114,34 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
     loop {
         for event in window.poll_events() {
             match event {
-                glutin::Event::KeyboardInput(_, _, Some(glutin::VirtualKeyCode::Escape)) |
-                    glutin::Event::Closed => {
-                        return Ok(());
-                    },
+                Event::KeyboardInput(_, _, Some(VirtualKeyCode::Escape)) | Event::Closed => {
+                    return Ok(());
+                },
 
-                    glutin::Event::Resized(new_width, new_height) => {
-                        gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+                Event::KeyboardInput(ElementState::Pressed, _, Some(VirtualKeyCode::F5)) => {
+                    println!("Reload!");
+                },
 
-                        width = new_width as f32;
-                        height = new_height as f32;
-                    }
+                Event::Resized(new_width, new_height) => {
+                    gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
 
-                glutin::Event::MouseMoved(x, y) => {
+                    width = new_width as f32;
+                    height = new_height as f32;
+                },
+
+                Event::MouseMoved(x, y) => {
                     mx = x as f32;
                     my = height - y as f32; // Flip y-axis
                 },
 
-                glutin::Event::MouseInput(state, button) => {
+                Event::MouseInput(state, button) => {
                     last_mouse = current_mouse;
-                    if state == glutin::ElementState::Pressed && button == glutin::MouseButton::Left {
+                    if state == ElementState::Pressed && button == MouseButton::Left {
                         current_mouse = Mouse::Pressed;
                     } else {
                         current_mouse = Mouse::Released;
                     }
-                }
+                },
 
                 _ => ()
             }
