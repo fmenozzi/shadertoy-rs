@@ -57,10 +57,10 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
     let (mut w, mut h) = (w, h);
 
     // Read fragment shader from file into byte buffer
-    let mut shader_src_buf = Vec::new();
+    let mut frag_src_buf = Vec::new();
     match File::open(&Path::new(&shaderpath)) {
         Ok(mut file) => {
-            if let Err(e) = file.read_to_end(&mut shader_src_buf) {
+            if let Err(e) = file.read_to_end(&mut frag_src_buf) {
                 return Err(format!("Error reading from {}: {}", shaderpath, e));
             }
         },
@@ -68,6 +68,10 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
             return Err(format!("Error opening file {}: {}", shaderpath, e));
         }
     }
+    let frag_src_buf = frag_src_buf.as_slice();
+
+    // Read default vertex shader from file into byte buffer
+    let vert_src_buf = include_bytes!("../shaders/default.vert");
 
     let builder = glutin::WindowBuilder::new()
         .with_title("shadertoy-rs")
@@ -79,11 +83,11 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
 
     let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
 
-    let pso = factory.create_pipeline_simple(
-        include_bytes!("../shaders/default.vert"),
-        shader_src_buf.as_slice(),
-        pipe::new()
-        ).expect("Error creating pipeline");
+    let pipeline;
+    match factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new()) {
+        Ok(p)  => pipeline = p,
+        Err(e) => return Err(format!("Error creating pipeline: {}", e)),
+    }
 
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
@@ -168,7 +172,7 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
 
         // Draw
         encoder.clear(&data.frag_color, CLEAR_COLOR);
-        encoder.draw(&slice, &pso, &data);
+        encoder.draw(&slice, &pipeline, &data);
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
         device.cleanup();
