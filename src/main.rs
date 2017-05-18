@@ -5,8 +5,7 @@ use shadertoy_rs::{arg_values, runner};
 fn main() {
     match arg_values::ArgValues::from_cli() {
         Ok(av) => {
-            let arg_values::ArgValues{width, height, shaderpath} = av;
-            if let Err(e) = runner::run(width, height, &shaderpath) {
+            if let Err(e) = runner::run(&av) {
                 println!("{}", e);
                 return;
             }

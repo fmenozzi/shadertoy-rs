@@ -35,4 +35,12 @@ impl ArgValues {
             shaderpath: shaderpath,
         })
     }
+
+    pub fn from_values(width: f32, height: f32, shaderpath: &str) -> ArgValues {
+        ArgValues {
+            width: width,
+            height: height,
+            shaderpath: shaderpath.to_string(),
+        }
+    }
 }

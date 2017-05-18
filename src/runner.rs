@@ -1,3 +1,5 @@
+use arg_values::ArgValues;
+
 use gfx;
 use glutin;
 use gfx_window_glutin;
@@ -53,8 +55,8 @@ const SCREEN_INDICES: [u16; 6] = [
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
-    let (mut w, mut h) = (w, h);
+pub fn run(av: &ArgValues) -> Result<(), String> {
+    let ArgValues{mut width, mut height, ref shaderpath} = *av;
 
     // Read fragment shader from file into byte buffer
     let mut frag_src_buf = Vec::new();
@@ -75,7 +77,7 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
 
     let builder = glutin::WindowBuilder::new()
         .with_title("shadertoy-rs")
-        .with_dimensions(w as u32, h as u32)
+        .with_dimensions(width as u32, height as u32)
         .with_vsync();
 
     let (window, mut device, mut factory, main_color, mut main_depth) =
@@ -95,7 +97,7 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
         vbuf: vertex_buffer,
 
         i_global_time: 0.0,
-        i_resolution: [w, h, w/h],
+        i_resolution: [width, height, width/height],
         i_mouse: [0.0; 4],
         i_frame: -1,
 
@@ -119,16 +121,16 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
                         return Ok(());
                     },
 
-                    glutin::Event::Resized(new_w, new_h) => {
+                    glutin::Event::Resized(new_width, new_height) => {
                         gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
 
-                        w = new_w as f32;
-                        h = new_h as f32;
+                        width = new_width as f32;
+                        height = new_height as f32;
                     }
 
                 glutin::Event::MouseMoved(x, y) => {
                     mx = x as f32;
-                    my = h - y as f32; // Flip y-axis
+                    my = height - y as f32; // Flip y-axis
                 },
 
                 glutin::Event::MouseInput(state, button) => {
@@ -165,7 +167,7 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
         data.i_global_time = elapsed_sec;
 
         // Resolution
-        data.i_resolution = [w, h, w/h];
+        data.i_resolution = [width, height, width/height];
 
         // Frame
         data.i_frame += 1;
