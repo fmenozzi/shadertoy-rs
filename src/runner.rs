@@ -1,5 +1,3 @@
-use clap::App;
-
 use gfx;
 use glutin;
 use gfx_window_glutin;
@@ -11,6 +9,8 @@ use std::time::Instant;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+
+use arg_values;
 
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
@@ -55,29 +55,19 @@ const SCREEN_INDICES: [u16; 6] = [
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run() {
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
-
-    let mut w: f32 = matches.value_of("width").unwrap().parse().expect("Invalid width specified");
-    let mut h: f32 = matches.value_of("height").unwrap().parse().expect("Invalid height specified");
+pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
+    let (mut w, mut h) = (w, h);
 
     // Read fragment shader from file into byte buffer
-    let shaderpath = matches.value_of("shader").unwrap();
     let mut shader_src_buf = Vec::new();
-    match File::open(&Path::new(shaderpath)) {
+    match File::open(&Path::new(&shaderpath)) {
         Ok(mut file) => {
-            match file.read_to_end(&mut shader_src_buf) {
-                Ok(_) => {},
-                Err(e) => {
-                    println!("Error reading from {}: {}", shaderpath, e);
-                    return;
-                }
+            if let Err(e) = file.read_to_end(&mut shader_src_buf) {
+                return Err(format!("Error reading from {}: {}", shaderpath, e));
             }
         },
         Err(e) => {
-            println!("Error opening file {}: {}", shaderpath, e);
-            return;
+            return Err(format!("Error opening file {}: {}", shaderpath, e));
         }
     }
 
@@ -124,7 +114,7 @@ pub fn run() {
             match event {
                 glutin::Event::KeyboardInput(_, _, Some(glutin::VirtualKeyCode::Escape)) |
                     glutin::Event::Closed => {
-                        return;
+                        return Ok(());
                     },
 
                     glutin::Event::Resized(new_w, new_h) => {
@@ -185,4 +175,6 @@ pub fn run() {
         window.swap_buffers().unwrap();
         device.cleanup();
     }
+
+    Ok(())
 }
