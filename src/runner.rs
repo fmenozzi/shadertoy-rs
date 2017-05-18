@@ -16,12 +16,6 @@ use std::time::Instant;
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
 
-#[derive(PartialEq)]
-enum Mouse {
-    Released,
-    Pressed,
-}
-
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 2] = "position",
@@ -102,8 +96,8 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
         frag_color: main_color,
     };
 
-    let mut last_mouse = Mouse::Released;
-    let mut current_mouse = Mouse::Released;
+    let mut last_mouse = ElementState::Released;
+    let mut current_mouse = ElementState::Released;
 
     let (mut mx, mut my) = (0.0, 0.0);
 
@@ -137,9 +131,9 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
                 Event::MouseInput(state, button) => {
                     last_mouse = current_mouse;
                     if state == ElementState::Pressed && button == MouseButton::Left {
-                        current_mouse = Mouse::Pressed;
+                        current_mouse = ElementState::Pressed;
                     } else {
-                        current_mouse = Mouse::Released;
+                        current_mouse = ElementState::Released;
                     }
                 },
 
@@ -148,10 +142,10 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
         }
 
         // Mouse
-        if current_mouse == Mouse::Pressed {
+        if current_mouse == ElementState::Pressed {
             xyzw[0] = mx;
             xyzw[1] = my;
-            if last_mouse == Mouse::Released {
+            if last_mouse == ElementState::Released {
                 xyzw[2] = mx;
                 xyzw[3] = my;
             }
