@@ -7,7 +7,7 @@ pub struct ArgValues {
 }
 
 impl ArgValues {
-    pub fn new() -> Result<ArgValues, String> {
+    pub fn from_cli() -> Result<ArgValues, String> {
         // Load CLI matches
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();

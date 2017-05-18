@@ -3,15 +3,10 @@ extern crate shadertoy_rs;
 use shadertoy_rs::{arg_values, runner};
 
 fn main() {
-    let w: f32;
-    let h: f32;
-    let shaderpath: String;
-    match arg_values::ArgValues::new() {
+    match arg_values::ArgValues::from_cli() {
         Ok(av) => {
-            w = av.width;
-            h = av.height;
-            shaderpath = av.shaderpath;
-            if let Err(e) = runner::run(w, h, &shaderpath) {
+            let arg_values::ArgValues{width, height, shaderpath} = av;
+            if let Err(e) = runner::run(width, height, &shaderpath) {
                 println!("{}", e);
                 return;
             }
