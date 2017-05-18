@@ -1,4 +1,4 @@
-use arg_values::ArgValues;
+use argvalues::ArgValues;
 
 use gfx;
 use glutin;

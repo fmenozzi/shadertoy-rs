@@ -1,9 +1,10 @@
 extern crate shadertoy_rs;
 
-use shadertoy_rs::{arg_values, runner};
+use shadertoy_rs::argvalues::ArgValues;
+use shadertoy_rs::runner;
 
 fn main() {
-    match arg_values::ArgValues::from_cli() {
+    match ArgValues::from_cli() {
         Ok(av) => {
             if let Err(e) = runner::run(&av) {
                 println!("{}", e);
