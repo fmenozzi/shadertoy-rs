@@ -10,8 +10,6 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use arg_values;
-
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
 
@@ -175,6 +173,4 @@ pub fn run(w: f32, h: f32, shaderpath: &str) -> Result<(), String> {
         window.swap_buffers().unwrap();
         device.cleanup();
     }
-
-    Ok(())
 }
