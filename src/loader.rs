@@ -12,6 +12,8 @@ pub fn load_shaders(av: &ArgValues) -> (Result<Vec<u8>, String>, Result<Vec<u8>,
 }
 
 pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
+    info!("Loading fragment shader {}", av.shaderpath);
+
     // Read fragment shader from file into String buffer
     let mut frag_src_str = String::new();
     match File::open(&Path::new(&av.shaderpath)) {
@@ -69,6 +71,8 @@ pub fn load_texture<F, R>(texpath: &str, factory: &mut F) ->
     where F: gfx::Factory<R>,
           R: gfx::Resources
 {
+    info!("Loading texture from {}", texpath);
+
     use gfx::format::Rgba8;
 
     let img;
@@ -84,7 +88,7 @@ pub fn load_texture<F, R>(texpath: &str, factory: &mut F) ->
     let view;
     match factory.create_texture_immutable_u8::<Rgba8>(kind, &[&img]) {
         Ok((_, v)) => view = v,
-        Err(e)   => return Err(format!("Error creating texture: {}", e)),
+        Err(e)     => return Err(format!("Error creating texture: {}", e)),
     }
 
     Ok(view)
