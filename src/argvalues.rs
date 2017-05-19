@@ -31,12 +31,23 @@ impl ArgValues {
             Err(e) => return Err(format!("Invalid height: {}", e)),
         }
 
-        // Shader filepath and whether it's from Shadertoy
-        let shaderpath = matches.value_of("shader").unwrap().to_string();
-        let not_from_shadertoy = if matches.is_present("shader") {
-            matches.is_present("not_from_shadertoy")
+        // Check to see if they want an example run
+        let (shaderpath, not_from_shadertoy) = if matches.is_present("example") {
+            let example = matches.value_of("example").unwrap();
+            let shaderpath = if example.contains(".frag") {
+                format!("examples/{}", example)
+            } else {
+                format!("examples/{}.frag", example)
+            };
+            (shaderpath, false)
         } else {
-            false
+            let shaderpath = matches.value_of("shader").unwrap().to_string();
+            let not_from_shadertoy = if matches.is_present("shader") {
+                matches.is_present("not_from_shadertoy")
+            } else {
+                false
+            };
+            (shaderpath, not_from_shadertoy)
         };
 
         // Texture paths

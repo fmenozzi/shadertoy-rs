@@ -39,6 +39,13 @@ args:
         takes_value: true
         default_value: "textures/04-woodgrain.jpg"
         help: Path to 2D RGBA texture for iChannel3
+    - example:
+        short: e
+        long: example
+        takes_value: true
+        conflicts_with:
+            - not_from_shadertoy
+        help: Run example shader from examples/ directory
     - shader:
         short: s
         long: shader
