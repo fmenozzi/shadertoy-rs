@@ -27,10 +27,10 @@ FLAGS:
 
 OPTIONS:
     -H, --height <height>        Sets window height [default: 400]
-        --texture0 <texture0>    Path to 2D RGBA texture for iChannel0 [default: textures/brickwall.jpg]
-        --texture1 <texture1>    Path to 2D RGBA texture for iChannel1 [default: textures/landscape.jpg]
-        --texture2 <texture2>    Path to 2D RGBA texture for iChannel2 [default: textures/whitenoise.jpg]
-        --texture3 <texture3>    Path to 2D RGBA texture for iChannel3 [default: textures/woodgrain.jpg]
+        --texture0 <texture0>    Path to 2D RGBA texture for iChannel0 [default: textures/01-brickwall.jpg]
+        --texture1 <texture1>    Path to 2D RGBA texture for iChannel1 [default: textures/02-landscape.jpg]
+        --texture2 <texture2>    Path to 2D RGBA texture for iChannel2 [default: textures/03-whitenoise.jpg]
+        --texture3 <texture3>    Path to 2D RGBA texture for iChannel3 [default: textures/04-woodgrain.jpg]
     -W, --width <width>          Sets window width [default: 600]
 
 ARGS:

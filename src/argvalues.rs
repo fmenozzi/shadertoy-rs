@@ -61,11 +61,10 @@ impl ArgValues {
             height: height,
             shaderpath: shaderpath.to_string(),
             not_from_shadertoy: not_from_shadertoy,
-            // TODO: Change
-            texture0path: "textures/brickwall.jpg".to_string(),
-            texture1path: "textures/landscape.jpg".to_string(),
-            texture2path: "textures/whitenoise.jpg".to_string(),
-            texture3path: "textures/woodgrain.jpg".to_string(),
+            texture0path: "textures/01-brickwall.jpg".to_string(),
+            texture1path: "textures/02-landscape.jpg".to_string(),
+            texture2path: "textures/03-whitenoise.jpg".to_string(),
+            texture3path: "textures/04-woodgrain.jpg".to_string(),
         }
     }
 }
