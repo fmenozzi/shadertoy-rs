@@ -30,9 +30,13 @@ gfx_defines! {
         i_resolution: gfx::Global<[f32; 3]> = "iResolution",
         i_mouse: gfx::Global<[f32; 4]> = "iMouse",
         i_frame: gfx::Global<i32> = "iFrame",
+        i_channel0: gfx::TextureSampler<[f32; 4]> = "iChannel0",
+        i_channel1: gfx::TextureSampler<[f32; 4]> = "iChannel1",
+        i_channel2: gfx::TextureSampler<[f32; 4]> = "iChannel2",
+        i_channel3: gfx::TextureSampler<[f32; 4]> = "iChannel3",
 
         // Output color
-        frag_color: gfx::RenderTarget<ColorFormat> = "fragColor",
+        frag_color: gfx::BlendTarget<ColorFormat> = ("fragColor", gfx::state::MASK_ALL, gfx::preset::blend::ALPHA),
     }
 }
 
@@ -51,7 +55,16 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 pub fn run(av: &ArgValues) -> Result<(), String> {
-    let ArgValues{mut width, mut height, ..} = *av;
+    let ArgValues {
+        mut width,
+        mut height,
+        ref shaderpath,
+        not_from_shadertoy,
+        ref texture0path,
+        ref texture1path,
+        ref texture2path,
+        ref texture3path,
+    } = *av;
 
     // Load vertex and fragment shaders into byte buffers
     let (vert_src_res, frag_src_res) = loader::load_shaders(&av);
@@ -85,6 +98,29 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
 
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
+    // Load textures
+    let sampler = factory.create_sampler_linear();
+    let texture0;
+    let texture1;
+    let texture2;
+    let texture3;
+    match loader::load_texture(&texture0path, &mut factory) {
+        Ok(tex) => texture0 = tex,
+        Err(e)  => return Err(e),
+    }
+    match loader::load_texture(&texture1path, &mut factory) {
+        Ok(tex) => texture1 = tex,
+        Err(e)  => return Err(e),
+    }
+    match loader::load_texture(&texture2path, &mut factory) {
+        Ok(tex) => texture2 = tex,
+        Err(e)  => return Err(e),
+    }
+    match loader::load_texture(&texture3path, &mut factory) {
+        Ok(tex) => texture3 = tex,
+        Err(e)  => return Err(e),
+    }
+
     let mut data = pipe::Data {
         vbuf: vertex_buffer,
 
@@ -92,6 +128,11 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
         i_resolution: [width, height, width/height],
         i_mouse: [0.0; 4],
         i_frame: -1,
+
+        i_channel0: (texture0, sampler.clone()),
+        i_channel1: (texture1, sampler.clone()),
+        i_channel2: (texture2, sampler.clone()),
+        i_channel3: (texture3, sampler.clone()),
 
         frag_color: main_color,
     };

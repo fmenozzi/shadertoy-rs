@@ -5,6 +5,10 @@ pub struct ArgValues {
     pub height: f32,
     pub shaderpath: String,
     pub not_from_shadertoy: bool,
+    pub texture0path: String,
+    pub texture1path: String,
+    pub texture2path: String,
+    pub texture3path: String,
 }
 
 impl ArgValues {
@@ -33,11 +37,21 @@ impl ArgValues {
         // From Shadertoy?
         let not_from_shadertoy = matches.is_present("not_from_shadertoy");
 
+        // Texture paths
+        let texture0path = matches.value_of("texture0").unwrap().to_string();
+        let texture1path = matches.value_of("texture1").unwrap().to_string();
+        let texture2path = matches.value_of("texture2").unwrap().to_string();
+        let texture3path = matches.value_of("texture3").unwrap().to_string();
+
         Ok(ArgValues {
             width: width,
             height: height,
             shaderpath: shaderpath,
             not_from_shadertoy: not_from_shadertoy,
+            texture0path: texture0path,
+            texture1path: texture1path,
+            texture2path: texture2path,
+            texture3path: texture3path,
         })
     }
 
@@ -47,6 +61,11 @@ impl ArgValues {
             height: height,
             shaderpath: shaderpath.to_string(),
             not_from_shadertoy: not_from_shadertoy,
+            // TODO: Change
+            texture0path: "textures/brickwall.jpg".to_string(),
+            texture1path: "textures/landscape.jpg".to_string(),
+            texture2path: "textures/whitenoise.jpg".to_string(),
+            texture3path: "textures/woodgrain.jpg".to_string(),
         }
     }
 }
