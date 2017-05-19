@@ -67,17 +67,4 @@ impl ArgValues {
             texture3path: texture3path,
         })
     }
-
-    pub fn from_values(width: f32, height: f32, shaderpath: &str, not_from_shadertoy: bool) -> ArgValues {
-        ArgValues {
-            width: width,
-            height: height,
-            shaderpath: shaderpath.to_string(),
-            not_from_shadertoy: not_from_shadertoy,
-            texture0path: "textures/01-brickwall.jpg".to_string(),
-            texture1path: "textures/02-landscape.jpg".to_string(),
-            texture2path: "textures/03-whitenoise.jpg".to_string(),
-            texture3path: "textures/04-woodgrain.jpg".to_string(),
-        }
-    }
 }
