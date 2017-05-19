@@ -13,6 +13,13 @@ use glutin::{VirtualKeyCode, ElementState, MouseButton, Event};
 
 use std::time::Instant;
 
+pub enum TextureId {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+}
+
 type ColorFormat = gfx::format::Rgba8;
 type DepthFormat = gfx::format::DepthStencil;
 
@@ -55,13 +62,7 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 pub fn run(av: &ArgValues) -> Result<(), String> {
-    let mut width = av.width;
-    let mut height = av.height;
-
-    let texture0path = &av.texture0path;
-    let texture1path = &av.texture1path;
-    let texture2path = &av.texture2path;
-    let texture3path = &av.texture3path;
+    let (mut width, mut height) = (av.width, av.height);
 
     // Load vertex and fragment shaders into byte buffers
     let (vert_src_res, frag_src_res) = loader::load_shaders(&av);
@@ -101,19 +102,19 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
     let texture1;
     let texture2;
     let texture3;
-    match loader::load_texture(&texture0path, &mut factory) {
+    match loader::load_texture(TextureId::ZERO, &av.texture0path, &mut factory) {
         Ok(tex) => texture0 = tex,
         Err(e)  => return Err(e),
     }
-    match loader::load_texture(&texture1path, &mut factory) {
+    match loader::load_texture(TextureId::ONE, &av.texture1path, &mut factory) {
         Ok(tex) => texture1 = tex,
         Err(e)  => return Err(e),
     }
-    match loader::load_texture(&texture2path, &mut factory) {
+    match loader::load_texture(TextureId::TWO, &av.texture2path, &mut factory) {
         Ok(tex) => texture2 = tex,
         Err(e)  => return Err(e),
     }
-    match loader::load_texture(&texture3path, &mut factory) {
+    match loader::load_texture(TextureId::THREE, &av.texture3path, &mut factory) {
         Ok(tex) => texture3 = tex,
         Err(e)  => return Err(e),
     }

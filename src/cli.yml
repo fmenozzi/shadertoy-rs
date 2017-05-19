@@ -18,22 +18,18 @@ args:
     - texture0:
         long: texture0
         takes_value: true
-        default_value: "textures/01-brickwall.jpg"
         help: Path to 2D RGBA texture for iChannel0
     - texture1:
         long: texture1
         takes_value: true
-        default_value: "textures/02-landscape.jpg"
         help: Path to 2D RGBA texture for iChannel1
     - texture2:
         long: texture2
         takes_value: true
-        default_value: "textures/03-whitenoise.jpg"
         help: Path to 2D RGBA texture for iChannel2
     - texture3:
         long: texture3
         takes_value: true
-        default_value: "textures/04-woodgrain.jpg"
         help: Path to 2D RGBA texture for iChannel3
     - example:
         short: e
@@ -45,5 +41,4 @@ args:
         long: shader
         takes_value: true
         index: 1
-        default_value: "shaders/default.frag"
         help: Path to fragment shader

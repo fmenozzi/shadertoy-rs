@@ -3,11 +3,18 @@ use clap::App;
 pub struct ArgValues {
     pub width: f32,
     pub height: f32,
-    pub shaderpath: String,
-    pub texture0path: String,
-    pub texture1path: String,
-    pub texture2path: String,
-    pub texture3path: String,
+
+    // None if using default fragment shader
+    pub shaderpath: Option<String>,
+
+    // None if using default textures
+    pub texture0path: Option<String>,
+    pub texture1path: Option<String>,
+    pub texture2path: Option<String>,
+    pub texture3path: Option<String>,
+
+    // Some(name) if running an example
+    pub examplename: Option<String>,
 }
 
 impl ArgValues {
@@ -31,22 +38,40 @@ impl ArgValues {
         }
 
         // Check to see if they want an example run
-        let shaderpath = if matches.is_present("example") {
-            let example = matches.value_of("example").unwrap();
-            if example.contains(".frag") {
-                format!("examples/{}", example)
-            } else {
-                format!("examples/{}.frag", example)
-            }
+        let examplename = if matches.is_present("example") {
+            Some(matches.value_of("example").unwrap().to_string())
         } else {
-            matches.value_of("shader").unwrap().to_string()
+            None
+        };
+
+        // Fragment shader path
+        let shaderpath = if matches.is_present("shader") {
+            Some(matches.value_of("shader").unwrap().to_string())
+        } else {
+            None
         };
 
         // Texture paths
-        let texture0path = matches.value_of("texture0").unwrap().to_string();
-        let texture1path = matches.value_of("texture1").unwrap().to_string();
-        let texture2path = matches.value_of("texture2").unwrap().to_string();
-        let texture3path = matches.value_of("texture3").unwrap().to_string();
+        let texture0path = if matches.is_present("texture0") {
+            Some(matches.value_of("texture0").unwrap().to_string())
+        } else {
+            None
+        };
+        let texture1path = if matches.is_present("texture1") {
+            Some(matches.value_of("texture1").unwrap().to_string())
+        } else {
+            None
+        };
+        let texture2path = if matches.is_present("texture2") {
+            Some(matches.value_of("texture2").unwrap().to_string())
+        } else {
+            None
+        };
+        let texture3path = if matches.is_present("texture3") {
+            Some(matches.value_of("texture3").unwrap().to_string())
+        } else {
+            None
+        };
 
         Ok(ArgValues {
             width: width,
@@ -56,6 +81,7 @@ impl ArgValues {
             texture1path: texture1path,
             texture2path: texture2path,
             texture3path: texture3path,
+            examplename: examplename,
         })
     }
 }
