@@ -55,16 +55,13 @@ const SCREEN_INDICES: [u16; 6] = [
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 pub fn run(av: &ArgValues) -> Result<(), String> {
-    let ArgValues {
-        mut width,
-        mut height,
-        ref shaderpath,
-        not_from_shadertoy,
-        ref texture0path,
-        ref texture1path,
-        ref texture2path,
-        ref texture3path,
-    } = *av;
+    let mut width = av.width;
+    let mut height = av.height;
+
+    let texture0path = &av.texture0path;
+    let texture1path = &av.texture1path;
+    let texture2path = &av.texture2path;
+    let texture3path = &av.texture3path;
 
     // Load vertex and fragment shaders into byte buffers
     let (vert_src_res, frag_src_res) = loader::load_shaders(&av);
