@@ -12,7 +12,6 @@ You can press `F5` to reload the shader if you've edited it since launching the 
 For now, the CLI looks like this:
 
 ```
-$ shadertoy-rs --help
 shadertoy-rs 0.1.0
 Federico Menozzi <federicogmenozzi@gmail.com>
 Desktop client for Shadertoy
