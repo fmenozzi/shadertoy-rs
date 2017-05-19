@@ -56,3 +56,5 @@ pub fn load_vertex_shader() -> Result<Vec<u8>, String> {
 
     Ok(vert_src_buf.to_vec())
 }
+
+

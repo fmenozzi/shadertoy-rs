@@ -8,6 +8,7 @@ gfx = "0.14"
 gfx_window_glutin = "0.14"
 glutin = "0.7"
 clap = { version = "2.23.2", features = ["yaml"] }
+image = "0.13"
 
 [[example]]
 name = "seascape"
