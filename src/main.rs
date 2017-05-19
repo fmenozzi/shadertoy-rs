@@ -1,7 +1,14 @@
-extern crate shadertoy_rs;
+#[macro_use] extern crate clap;
+#[macro_use] extern crate gfx;
+extern crate gfx_window_glutin;
+extern crate glutin;
+extern crate image;
 
-use shadertoy_rs::argvalues::ArgValues;
-use shadertoy_rs::runner;
+mod argvalues;
+mod runner;
+mod loader;
+
+use argvalues::ArgValues;
 
 fn main() {
     match ArgValues::from_cli() {
