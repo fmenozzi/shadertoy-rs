@@ -27,12 +27,11 @@ Federico Menozzi <federicogmenozzi@gmail.com>
 Desktop client for Shadertoy
 
 USAGE:
-    shadertoy-rs [FLAGS] [OPTIONS] [shader]
+    shadertoy-rs [OPTIONS] [shader]
 
 FLAGS:
-    -h, --help                  Prints help information
-    -n, --not-from-shadertoy    For shaders not copy-pasted from Shadertoy
-    -V, --version               Prints version information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
 OPTIONS:
     -e, --example <example>      Run example shader from examples/ directory

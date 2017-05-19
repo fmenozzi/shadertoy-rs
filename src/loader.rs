@@ -27,34 +27,27 @@ pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
         }
     }
 
-    // Add prefix/suffix to shader source if appropriate
-    let (prefix, suffix) = if av.not_from_shadertoy {
-        ("", "")
-    } else {
-        let prefix = "
-            #version 150 core
+    // Add prefix/suffix to shader source
+    let prefix = "
+        #version 150 core
 
-            uniform float     iGlobalTime;
-            uniform vec3      iResolution;
-            uniform vec4      iMouse;
-            uniform int       iFrame;
-            uniform sampler2D iChannel0;
-            uniform sampler2D iChannel1;
-            uniform sampler2D iChannel2;
-            uniform sampler2D iChannel3;
+        uniform float     iGlobalTime;
+        uniform vec3      iResolution;
+        uniform vec4      iMouse;
+        uniform int       iFrame;
+        uniform sampler2D iChannel0;
+        uniform sampler2D iChannel1;
+        uniform sampler2D iChannel2;
+        uniform sampler2D iChannel3;
 
-            in vec2 fragCoord;
-            out vec4 fragColor;
-        ";
-
-        let suffix = "
-            void main() {
-                mainImage(fragColor, fragCoord);
-            }
-        ";
-
-        (prefix, suffix)
-    };
+        in vec2 fragCoord;
+        out vec4 fragColor;
+    ";
+    let suffix = "
+        void main() {
+            mainImage(fragColor, fragCoord);
+        }
+    ";
     let frag_src_str = format!("{}\n{}\n{}", prefix, frag_src_str, suffix);
 
     Ok(frag_src_str.into_bytes())

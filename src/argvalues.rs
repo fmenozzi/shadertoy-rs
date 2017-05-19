@@ -4,7 +4,6 @@ pub struct ArgValues {
     pub width: f32,
     pub height: f32,
     pub shaderpath: String,
-    pub not_from_shadertoy: bool,
     pub texture0path: String,
     pub texture1path: String,
     pub texture2path: String,
@@ -32,22 +31,15 @@ impl ArgValues {
         }
 
         // Check to see if they want an example run
-        let (shaderpath, not_from_shadertoy) = if matches.is_present("example") {
+        let shaderpath = if matches.is_present("example") {
             let example = matches.value_of("example").unwrap();
-            let shaderpath = if example.contains(".frag") {
+            if example.contains(".frag") {
                 format!("examples/{}", example)
             } else {
                 format!("examples/{}.frag", example)
-            };
-            (shaderpath, false)
+            }
         } else {
-            let shaderpath = matches.value_of("shader").unwrap().to_string();
-            let not_from_shadertoy = if matches.is_present("shader") {
-                matches.is_present("not_from_shadertoy")
-            } else {
-                false
-            };
-            (shaderpath, not_from_shadertoy)
+            matches.value_of("shader").unwrap().to_string()
         };
 
         // Texture paths
@@ -60,7 +52,6 @@ impl ArgValues {
             width: width,
             height: height,
             shaderpath: shaderpath,
-            not_from_shadertoy: not_from_shadertoy,
             texture0path: texture0path,
             texture1path: texture1path,
             texture2path: texture2path,
