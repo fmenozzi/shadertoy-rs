@@ -37,41 +37,20 @@ impl ArgValues {
             Err(e) => return Err(format!("Invalid height: {}", e)),
         }
 
+        // Closure for converting &str to String
+        let str_to_string = |s: &str| s.to_string();
+
         // Check to see if they want an example run
-        let examplename = if matches.is_present("example") {
-            Some(matches.value_of("example").unwrap().to_string())
-        } else {
-            None
-        };
+        let examplename = matches.value_of("example").map(&str_to_string);
 
         // Fragment shader path
-        let shaderpath = if matches.is_present("shader") {
-            Some(matches.value_of("shader").unwrap().to_string())
-        } else {
-            None
-        };
+        let shaderpath = matches.value_of("shader").map(&str_to_string);
 
         // Texture paths
-        let texture0path = if matches.is_present("texture0") {
-            Some(matches.value_of("texture0").unwrap().to_string())
-        } else {
-            None
-        };
-        let texture1path = if matches.is_present("texture1") {
-            Some(matches.value_of("texture1").unwrap().to_string())
-        } else {
-            None
-        };
-        let texture2path = if matches.is_present("texture2") {
-            Some(matches.value_of("texture2").unwrap().to_string())
-        } else {
-            None
-        };
-        let texture3path = if matches.is_present("texture3") {
-            Some(matches.value_of("texture3").unwrap().to_string())
-        } else {
-            None
-        };
+        let texture0path = matches.value_of("texture0").map(&str_to_string);
+        let texture1path = matches.value_of("texture1").map(&str_to_string);
+        let texture2path = matches.value_of("texture2").map(&str_to_string);
+        let texture3path = matches.value_of("texture3").map(&str_to_string);
 
         Ok(ArgValues {
             width: width,
