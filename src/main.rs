@@ -15,16 +15,7 @@ use argvalues::ArgValues;
 fn main() {
     env_logger::init().expect("Unable to initialize logger");
 
-    match ArgValues::from_cli() {
-        Ok(av) => {
-            if let Err(e) = runner::run(&av) {
-                error!("{}", e);
-                return;
-            }
-        },
-        Err(e) => {
-            error!("{}", e);
-            return;
-        }
+    if let Err(e) = ArgValues::from_cli().and_then(|av| runner::run(&av)) {
+        error!("{}", e);
     }
 }
