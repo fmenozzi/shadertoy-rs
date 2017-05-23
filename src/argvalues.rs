@@ -1,5 +1,7 @@
 use clap::App;
 
+use std::error::Error;
+
 pub struct ArgValues {
     pub width: f32,
     pub height: f32,
@@ -18,24 +20,16 @@ pub struct ArgValues {
 }
 
 impl ArgValues {
-    pub fn from_cli() -> Result<ArgValues, String> {
+    pub fn from_cli() -> Result<ArgValues, Box<Error>> {
         // Load CLI matches
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
 
         // Width
-        let width: f32;
-        match matches.value_of("width").unwrap().parse() {
-            Ok(w)  => width = w,
-            Err(e) => return Err(format!("Invalid width: {}", e)),
-        }
+        let width = matches.value_of("width").unwrap().parse()?;
 
         // Height
-        let height: f32;
-        match matches.value_of("height").unwrap().parse() {
-            Ok(h)  => height = h,
-            Err(e) => return Err(format!("Invalid height: {}", e)),
-        }
+        let height = matches.value_of("height").unwrap().parse()?;
 
         // Closure for converting &str to String
         let str_to_string = |s: &str| s.to_string();

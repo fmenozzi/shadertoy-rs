@@ -12,6 +12,7 @@ use gfx::Device;
 use glutin::{VirtualKeyCode, ElementState, MouseButton, Event};
 
 use std::time::Instant;
+use std::error::Error;
 
 pub enum TextureId {
     ZERO,
@@ -61,7 +62,7 @@ const SCREEN_INDICES: [u16; 6] = [
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run(av: &ArgValues) -> Result<(), String> {
+pub fn run(av: &ArgValues) -> Result<(), Box<Error>> {
     let (mut width, mut height) = (av.width, av.height);
 
     // Load vertex and fragment shaders into byte buffers
@@ -73,8 +74,8 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
             frag_src_buf = fsbuf;
         },
 
-        (Err(vse), _) => return Err(format!("Error reading vertex shader: {}", vse)),
-        (_, Err(fse)) => return Err(format!("Error reading fragment shader: {}", fse)),
+        (Err(vse), _) => return Err(From::from(vse)),
+        (_, Err(fse)) => return Err(From::from(fse)),
     }
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
@@ -88,36 +89,17 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
 
     let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
 
-    let mut pipeline;
-    match factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new()) {
-        Ok(p)  => pipeline = p,
-        Err(e) => return Err(format!("Error creating pipeline: {}", e)),
-    }
+    let mut pipeline = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new())?;
 
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
     // Load textures
+    let texture0 = loader::load_texture(TextureId::ZERO, &av.texture0path, &mut factory)?;
+    let texture1 = loader::load_texture(TextureId::ONE, &av.texture1path, &mut factory)?;
+    let texture2 = loader::load_texture(TextureId::TWO, &av.texture2path, &mut factory)?;
+    let texture3 = loader::load_texture(TextureId::THREE, &av.texture3path, &mut factory)?;
+
     let sampler = factory.create_sampler_linear();
-    let texture0;
-    let texture1;
-    let texture2;
-    let texture3;
-    match loader::load_texture(TextureId::ZERO, &av.texture0path, &mut factory) {
-        Ok(tex) => texture0 = tex,
-        Err(e)  => return Err(e),
-    }
-    match loader::load_texture(TextureId::ONE, &av.texture1path, &mut factory) {
-        Ok(tex) => texture1 = tex,
-        Err(e)  => return Err(e),
-    }
-    match loader::load_texture(TextureId::TWO, &av.texture2path, &mut factory) {
-        Ok(tex) => texture2 = tex,
-        Err(e)  => return Err(e),
-    }
-    match loader::load_texture(TextureId::THREE, &av.texture3path, &mut factory) {
-        Ok(tex) => texture3 = tex,
-        Err(e)  => return Err(e),
-    }
 
     let mut data = pipe::Data {
         vbuf: vertex_buffer,
@@ -153,19 +135,11 @@ pub fn run(av: &ArgValues) -> Result<(), String> {
 
                 Event::KeyboardInput(ElementState::Pressed, _, Some(VirtualKeyCode::F5)) => {
                     // Reload fragment shader into byte buffer
-                    let frag_src_res = loader::load_fragment_shader(&av);
-                    let frag_src_buf: Vec<u8>;
-                    match frag_src_res {
-                        Ok(fsbuf) => frag_src_buf = fsbuf,
-                        Err(fse)  => return Err(format!("Error reloading fragment shader: {}", fse)),
-                    }
-                    let frag_src_buf = frag_src_buf.as_slice();
+                    let frag_src_res = loader::load_fragment_shader(&av)?;
+                    let frag_src_buf = frag_src_res.as_slice();
 
                     // Recreate pipeline
-                    match factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new()) {
-                        Ok(p)  => pipeline = p,
-                        Err(e) => return Err(format!("Error recreating pipeline: {}", e)),
-                    }
+                    pipeline = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new())?;
 
                     // Reset uniforms
                     data.i_global_time = 0.0;

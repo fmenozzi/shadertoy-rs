@@ -3,6 +3,7 @@ use argvalues::ArgValues;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::error::Error;
 
 use gfx;
 use image;
@@ -29,13 +30,11 @@ pub fn load_shaders(av: &ArgValues) -> (Result<Vec<u8>, String>, Result<Vec<u8>,
 
 pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
     let frag_src_str = if let Some(ref example) = av.examplename {
-        let example_str;
         match example.as_ref() {
-            "seascape" => example_str = EXAMPLE_SEASCAPE_STR.to_string(),
-            "elemental-ring" => example_str = EXAMPLE_ELEMENTAL_RING_STR.to_string(),
+            "seascape" => EXAMPLE_SEASCAPE_STR.to_string(),
+            "elemental-ring" => EXAMPLE_ELEMENTAL_RING_STR.to_string(),
             _ => return Err(format!("No example named {}", example)),
         }
-        example_str
     } else {
         // Read fragment shader from file into String buffer
         match av.shaderpath {
@@ -90,7 +89,7 @@ pub fn load_vertex_shader() -> Result<Vec<u8>, String> {
 }
 
 pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut F) ->
-        Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String>
+        Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, Box<Error>>
     where F: gfx::Factory<R>,
           R: gfx::Resources
 {
@@ -112,21 +111,10 @@ pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut
 
     let img = match default_buf {
         Some(default_buf) => {
-            let img;
-            match image::load_from_memory(default_buf) {
-                Ok(res) => img = res.flipv().to_rgba(),
-                Err(e)  => return Err(format!("Error opening default texture: {}", e)),
-            }
-            img
+            image::load_from_memory(default_buf)?.flipv().to_rgba()
         },
         None => {
-            let path = texpath.clone().unwrap();
-            let img;
-            match image::open(&path) {
-                Ok(res) => img = res.flipv().to_rgba(),
-                Err(e)  => return Err(format!("Error opening texture {}: {}", path, e)),
-            }
-            img
+            image::open(&texpath.clone().unwrap())?.flipv().to_rgba()
         }
     };
 
@@ -134,11 +122,7 @@ pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut
 
     let kind = gfx::texture::Kind::D2(w as u16, h as u16, gfx::texture::AaMode::Single);
 
-    let view;
-    match factory.create_texture_immutable_u8::<Rgba8>(kind, &[&img]) {
-        Ok((_, v)) => view = v,
-        Err(e)     => return Err(format!("Error creating texture: {}", e)),
-    }
+    let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(kind, &[&img])?;
 
     Ok(view)
 }
