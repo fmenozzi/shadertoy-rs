@@ -1,6 +1,6 @@
-use clap::App;
+use error::ShadertoyError;
 
-use std::error::Error;
+use clap::App;
 
 pub struct ArgValues {
     pub width: f32,
@@ -20,7 +20,7 @@ pub struct ArgValues {
 }
 
 impl ArgValues {
-    pub fn from_cli() -> Result<ArgValues, Box<Error>> {
+    pub fn from_cli() -> Result<ArgValues, ShadertoyError> {
         // Load CLI matches
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();

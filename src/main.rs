@@ -9,6 +9,7 @@ extern crate env_logger;
 mod argvalues;
 mod runner;
 mod loader;
+mod error;
 
 use argvalues::ArgValues;
 

@@ -1,5 +1,5 @@
 name: shadertoy-rs
-version: "0.1.0"
+version: "0.2.0"
 author: Federico Menozzi <federicogmenozzi@gmail.com>
 about: Desktop client for Shadertoy
 args:

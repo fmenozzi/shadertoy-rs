@@ -1,4 +1,5 @@
 use argvalues::ArgValues;
+use error::ShadertoyError;
 
 use loader;
 
@@ -12,7 +13,6 @@ use gfx::Device;
 use glutin::{VirtualKeyCode, ElementState, MouseButton, Event};
 
 use std::time::Instant;
-use std::error::Error;
 
 pub enum TextureId {
     ZERO,
@@ -62,21 +62,12 @@ const SCREEN_INDICES: [u16; 6] = [
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run(av: &ArgValues) -> Result<(), Box<Error>> {
+pub fn run(av: &ArgValues) -> Result<(), ShadertoyError> {
     let (mut width, mut height) = (av.width, av.height);
 
     // Load vertex and fragment shaders into byte buffers
-    let (vert_src_res, frag_src_res) = loader::load_shaders(&av);
-    let (vert_src_buf, frag_src_buf): (Vec<u8>, Vec<u8>);
-    match (vert_src_res, frag_src_res) {
-        (Ok(vsbuf), Ok(fsbuf)) => {
-            vert_src_buf = vsbuf;
-            frag_src_buf = fsbuf;
-        },
-
-        (Err(vse), _) => return Err(From::from(vse)),
-        (_, Err(fse)) => return Err(From::from(fse)),
-    }
+    let vert_src_buf = loader::load_vertex_shader();
+    let frag_src_buf = loader::load_fragment_shader(&av)?;
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
     let builder = glutin::WindowBuilder::new()

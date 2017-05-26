@@ -1,10 +1,11 @@
 use argvalues::ArgValues;
 use runner::TextureId;
+use error::ShadertoyError;
+use error::LoadShaderError;
 
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::error::Error;
 
 use gfx;
 use image;
@@ -47,16 +48,15 @@ const SUFFIX: &'static str = "
     }
 ";
 
-pub fn load_shaders(av: &ArgValues) -> (Result<Vec<u8>, String>, Result<Vec<u8>, String>) {
-    (load_vertex_shader(), load_fragment_shader(&av))
-}
-
-pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
+pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, ShadertoyError> {
     let frag_src_str = if let Some(ref example) = av.examplename {
         match example.as_ref() {
             "seascape" => EXAMPLE_SEASCAPE_STR.to_string(),
             "elemental-ring" => EXAMPLE_ELEMENTAL_RING_STR.to_string(),
-            _ => return Err(format!("No example named {}", example)),
+            _ => {
+                let err = LoadShaderError::new(format!("No example named {}", example));
+                return Err(ShadertoyError::LoadShader(err));
+            },
         }
     } else {
         // Read fragment shader from file into String buffer
@@ -66,11 +66,13 @@ pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
                 match File::open(&Path::new(&shaderpath)) {
                     Ok(mut file) => {
                         if let Err(e) = file.read_to_string(&mut frag_src_str) {
-                            return Err(format!("Error reading from '{}': {}", shaderpath, e));
+                            let err = LoadShaderError::new(format!("Error reading from {}: {}", shaderpath, e));
+                            return Err(ShadertoyError::LoadShader(err));
                         }
                     },
                     Err(e) => {
-                        return Err(format!("Error opening file '{}': {}", shaderpath, e));
+                        let err = LoadShaderError::new(format!("Error opening file {}: {}", shaderpath, e));
+                        return Err(ShadertoyError::LoadShader(err));
                     }
                 }
                 frag_src_str
@@ -86,12 +88,12 @@ pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
     Ok(frag_src_str.into_bytes())
 }
 
-pub fn load_vertex_shader() -> Result<Vec<u8>, String> {
-    Ok(DEFAULT_VERT_SRC_BUF.to_vec())
+pub fn load_vertex_shader() -> Vec<u8> {
+    DEFAULT_VERT_SRC_BUF.to_vec()
 }
 
 pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut F) ->
-        Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, Box<Error>>
+        Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, ShadertoyError>
     where F: gfx::Factory<R>,
           R: gfx::Resources
 {
