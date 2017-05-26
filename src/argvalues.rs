@@ -25,14 +25,12 @@ impl ArgValues {
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
 
-        // Width
-        let width = matches.value_of("width").unwrap().parse()?;
-
-        // Height
-        let height = matches.value_of("height").unwrap().parse()?;
-
         // Closure for converting &str to String
         let str_to_string = |s: &str| s.to_string();
+
+        // Window dimensions
+        let width = matches.value_of("width").unwrap().parse()?;
+        let height = matches.value_of("height").unwrap().parse()?;
 
         // Check to see if they want an example run
         let examplename = matches.value_of("example").map(&str_to_string);

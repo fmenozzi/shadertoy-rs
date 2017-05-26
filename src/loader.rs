@@ -1,4 +1,5 @@
 use argvalues::ArgValues;
+use runner::TextureId;
 
 use std::fs::File;
 use std::io::Read;
@@ -7,8 +8,6 @@ use std::error::Error;
 
 use gfx;
 use image;
-
-use runner::TextureId;
 
 // Default shaders
 pub static DEFAULT_VERT_SRC_BUF: &'static [u8] = include_bytes!("../shaders/default.vert");
@@ -23,6 +22,30 @@ pub static DEFAULT_TEXTURE3_BUF: &'static [u8] = include_bytes!("../textures/04-
 // Example shaders
 pub static EXAMPLE_SEASCAPE_STR: &'static str = include_str!("../examples/seascape.frag");
 pub static EXAMPLE_ELEMENTAL_RING_STR: &'static str = include_str!("../examples/elemental-ring.frag");
+
+// Fragment shader prefix
+const PREFIX: &'static str = "
+    #version 150 core
+
+    uniform float     iGlobalTime;
+    uniform vec3      iResolution;
+    uniform vec4      iMouse;
+    uniform int       iFrame;
+    uniform sampler2D iChannel0;
+    uniform sampler2D iChannel1;
+    uniform sampler2D iChannel2;
+    uniform sampler2D iChannel3;
+
+    in vec2 fragCoord;
+    out vec4 fragColor;
+";
+
+// Fragment shader suffix
+const SUFFIX: &'static str = "
+    void main() {
+        mainImage(fragColor, fragCoord);
+    }
+";
 
 pub fn load_shaders(av: &ArgValues) -> (Result<Vec<u8>, String>, Result<Vec<u8>, String>) {
     (load_vertex_shader(), load_fragment_shader(&av))
@@ -58,28 +81,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, String> {
         }
     };
 
-    // Add prefix/suffix to fragment shader source
-    let prefix = "
-        #version 150 core
-
-        uniform float     iGlobalTime;
-        uniform vec3      iResolution;
-        uniform vec4      iMouse;
-        uniform int       iFrame;
-        uniform sampler2D iChannel0;
-        uniform sampler2D iChannel1;
-        uniform sampler2D iChannel2;
-        uniform sampler2D iChannel3;
-
-        in vec2 fragCoord;
-        out vec4 fragColor;
-    ";
-    let suffix = "
-        void main() {
-            mainImage(fragColor, fragCoord);
-        }
-    ";
-    let frag_src_str = format!("{}\n{}\n{}", prefix, frag_src_str, suffix);
+    let frag_src_str = format!("{}\n{}\n{}", PREFIX, frag_src_str, SUFFIX);
 
     Ok(frag_src_str.into_bytes())
 }
@@ -95,33 +97,25 @@ pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut
 {
     use gfx::format::Rgba8;
 
-    let default_buf = match *texpath {
-        Some(_) => {
-            None
-        },
-        None => {
-            match id {
-                TextureId::ZERO  => Some(DEFAULT_TEXTURE0_BUF),
-                TextureId::ONE   => Some(DEFAULT_TEXTURE1_BUF),
-                TextureId::TWO   => Some(DEFAULT_TEXTURE2_BUF),
-                TextureId::THREE => Some(DEFAULT_TEXTURE3_BUF),
-            }
+    let default_buf = if texpath.is_some() {
+        None
+    } else {
+        match id {
+            TextureId::ZERO  => Some(DEFAULT_TEXTURE0_BUF),
+            TextureId::ONE   => Some(DEFAULT_TEXTURE1_BUF),
+            TextureId::TWO   => Some(DEFAULT_TEXTURE2_BUF),
+            TextureId::THREE => Some(DEFAULT_TEXTURE3_BUF),
         }
     };
 
-    let img = match default_buf {
-        Some(default_buf) => {
-            image::load_from_memory(default_buf)?.flipv().to_rgba()
-        },
-        None => {
-            image::open(&texpath.clone().unwrap())?.flipv().to_rgba()
-        }
+    let img = if let Some(default_buf) = default_buf {
+        image::load_from_memory(default_buf)?.flipv().to_rgba()
+    } else {
+        image::open(&texpath.clone().unwrap())?.flipv().to_rgba()
     };
 
     let (w, h) = img.dimensions();
-
     let kind = gfx::texture::Kind::D2(w as u16, h as u16, gfx::texture::AaMode::Single);
-
     let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(kind, &[&img])?;
 
     Ok(view)
