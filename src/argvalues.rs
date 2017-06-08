@@ -17,6 +17,9 @@ pub struct ArgValues {
 
     // Some(name) if running an example
     pub examplename: Option<String>,
+
+    // Some(id) if getting a shader from network
+    pub getid: Option<String>,
 }
 
 impl ArgValues {
@@ -44,6 +47,13 @@ impl ArgValues {
         let texture2path = matches.value_of("texture2").map(&str_to_string);
         let texture3path = matches.value_of("texture3").map(&str_to_string);
 
+        // Check to see if they want to download a shader
+        let getid = if let Some(getmatches) = matches.subcommand_matches("get") {
+            getmatches.value_of("id").map(&str_to_string)
+        } else {
+            None
+        };
+
         Ok(ArgValues {
             width: width,
             height: height,
@@ -53,6 +63,7 @@ impl ArgValues {
             texture2path: texture2path,
             texture3path: texture3path,
             examplename: examplename,
+            getid: getid,
         })
     }
 }

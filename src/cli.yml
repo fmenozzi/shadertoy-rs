@@ -2,6 +2,18 @@ name: shadertoy-rs
 version: "0.2.0"
 author: Federico Menozzi <federicogmenozzi@gmail.com>
 about: Desktop client for Shadertoy
+subcommands:
+    - get:
+        name: get
+        version: "0.2.0"
+        author: Federico Menozzi <federicogmenozzi@gmail.com>
+        about: Download shaders from shadertoy.com
+        args:
+            - id:
+                takes_value: true
+                index: 1
+                required: true
+                help: Shader id from Shadertoy URL
 args:
     - width:
         short: W

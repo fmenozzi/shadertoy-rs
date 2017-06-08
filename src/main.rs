@@ -5,11 +5,15 @@ extern crate glutin;
 extern crate image;
 #[macro_use] extern crate log;
 extern crate env_logger;
+extern crate hyper;
+extern crate url;
+extern crate serde_json;
 
 mod argvalues;
 mod runner;
 mod loader;
 mod error;
+mod net;
 
 use argvalues::ArgValues;
 

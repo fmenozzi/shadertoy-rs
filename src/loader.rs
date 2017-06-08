@@ -1,7 +1,6 @@
 use argvalues::ArgValues;
 use runner::TextureId;
-use error::ShadertoyError;
-use error::LoadShaderError;
+use error::{ShadertoyError, LoadShaderError};
 
 use std::fs::File;
 use std::io::Read;

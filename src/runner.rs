@@ -1,7 +1,7 @@
 use argvalues::ArgValues;
 use error::ShadertoyError;
-
 use loader;
+use net;
 
 use gfx;
 use glutin;
@@ -64,6 +64,13 @@ const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
 pub fn run(av: &ArgValues) -> Result<(), ShadertoyError> {
     let (mut width, mut height) = (av.width, av.height);
+
+    // Download shader if given id
+    if let Some(ref id) = av.getid {
+        let (info, code) = net::get_shader_info_and_code(id)?;
+        println!("Info:\n {}", info);
+        println!("Code:\n {}", code);
+    }
 
     // Load vertex and fragment shaders into byte buffers
     let vert_src_buf = loader::load_vertex_shader();
