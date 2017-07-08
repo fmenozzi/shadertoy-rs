@@ -1,7 +1,7 @@
 use argvalues::ArgValues;
 use error::ShadertoyError;
 use loader;
-use net;
+use download;
 
 use gfx;
 use glutin;
@@ -67,7 +67,7 @@ pub fn run(av: &ArgValues) -> Result<(), ShadertoyError> {
 
     // Download shader if given id
     if let Some(ref id) = av.getid {
-        let (info, code) = net::get_shader_info_and_code(id)?;
+        let (info, code) = download::get_shader_info_and_code(id)?;
         println!("Info:\n {}", info);
         println!("Code:\n {}", code);
     }

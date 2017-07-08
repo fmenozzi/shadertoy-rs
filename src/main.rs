@@ -13,7 +13,7 @@ mod argvalues;
 mod runner;
 mod loader;
 mod error;
-mod net;
+mod download;
 
 use argvalues::ArgValues;
 

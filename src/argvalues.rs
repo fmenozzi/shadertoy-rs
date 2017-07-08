@@ -18,7 +18,7 @@ pub struct ArgValues {
     // Some(name) if running an example
     pub examplename: Option<String>,
 
-    // Some(id) if getting a shader from network
+    // Some(id) if downloading a shader
     pub getid: Option<String>,
 }
 
