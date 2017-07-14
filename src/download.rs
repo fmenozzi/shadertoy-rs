@@ -10,7 +10,7 @@ use serde_json::{self, Value};
 use std::io::{Read, Write};
 use std::fs::File;
 
-pub fn download(id: &str) -> error::Result<()> {
+pub fn download(id: &str) -> error::Result<(String, String)> {
     let (name, code) = get_shader_name_and_code(id)?;
 
     let mut file = match File::create(&name) {
@@ -22,7 +22,7 @@ pub fn download(id: &str) -> error::Result<()> {
         return Err(ShadertoyError::SaveShader(SaveShaderError::new(format!("Unable to save shader {}: {}", name, err))));
     }
 
-    Ok(())
+    Ok((name, code))
 }
 
 fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {

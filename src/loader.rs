@@ -47,6 +47,10 @@ const SUFFIX: &'static str = "
     }
 ";
 
+pub fn format_shader_src(src: &str) -> Vec<u8> {
+    format!("{}\n{}\n{}", PREFIX, src, SUFFIX).into_bytes()
+}
+
 pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
     let frag_src_str = if let Some(ref example) = av.examplename {
         match example.as_ref() {
@@ -82,9 +86,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
         }
     };
 
-    let frag_src_str = format!("{}\n{}\n{}", PREFIX, frag_src_str, SUFFIX);
-
-    Ok(frag_src_str.into_bytes())
+    Ok(format_shader_src(&frag_src_str))
 }
 
 pub fn load_vertex_shader() -> Vec<u8> {

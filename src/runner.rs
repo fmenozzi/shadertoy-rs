@@ -65,14 +65,21 @@ const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 pub fn run(av: &ArgValues) -> error::Result<()> {
     let (mut width, mut height) = (av.width, av.height);
 
-    // Download shader if given id
-    if let Some(ref id) = av.getid {
-        download::download(id)?;
-    }
-
     // Load vertex and fragment shaders into byte buffers
     let vert_src_buf = loader::load_vertex_shader();
-    let frag_src_buf = loader::load_fragment_shader(&av)?;
+    let frag_src_buf = match av.getid {
+        Some(ref id) => {
+            let (_, shadercode) = download::download(id)?;
+            if av.andrun {
+                loader::format_shader_src(&shadercode)
+            } else {
+                loader::load_fragment_shader(&av)?
+            }
+        },
+        None => {
+            loader::load_fragment_shader(&av)?
+        }
+    };
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
     let builder = glutin::WindowBuilder::new()
