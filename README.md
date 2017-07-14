@@ -20,6 +20,18 @@ So long as you restrict yourself to the supported uniforms, shaders copy-pasted 
 
 You can press `F5` to reload the shader if you've edited it since launching the app.
 
+You can also download (and optionally run) shaders directly from Shadertoy if you have the URL or shader ID. For example, to download the classic [Seascape](https://www.shadertoy.com/view/Ms2SD1) shader, you can run
+
+```
+shadertoy get https://www.shadertoy.com/view/Ms2SD1
+```
+
+or just
+
+```
+shadertoy get Ms2SD1
+```
+
 For now, the CLI looks like this:
 
 ```
@@ -28,7 +40,7 @@ Federico Menozzi <federicogmenozzi@gmail.com>
 Desktop client for Shadertoy
 
 USAGE:
-    shadertoy [OPTIONS] [shader]
+    shadertoy [OPTIONS] [shader] [SUBCOMMAND]
 
 FLAGS:
     -h, --help       Prints help information
@@ -45,4 +57,8 @@ OPTIONS:
 
 ARGS:
     <shader>    Path to fragment shader [default: shaders/default.frag]
+
+SUBCOMMANDS:
+    get     Download shaders from shadertoy.com
+    help    Prints this message or the help of the given subcommand(s)
 ````
