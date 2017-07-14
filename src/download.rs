@@ -1,4 +1,4 @@
-use error::{ShadertoyError, InvalidShaderIdError, SaveShaderError};
+use error::{self, ShadertoyError, InvalidShaderIdError, SaveShaderError};
 
 use hyper::{self, Client};
 use hyper::header::{Referer, ContentType};
@@ -10,7 +10,7 @@ use serde_json::{self, Value};
 use std::io::{Read, Write};
 use std::fs::File;
 
-pub fn download(id: &str) -> Result<(), ShadertoyError> {
+pub fn download(id: &str) -> error::Result<()> {
     let (name, code) = get_shader_name_and_code(id)?;
 
     let mut file = match File::create(&name) {
@@ -25,7 +25,7 @@ pub fn download(id: &str) -> Result<(), ShadertoyError> {
     Ok(())
 }
 
-fn get_shader_name_and_code(mut id: &str) -> Result<(String, String), ShadertoyError> {
+fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
     let https_url = "https://www.shadertoy.com/view/";
     let http_url  = "http://www.shadertoy.com/view/";
     let url       = "www.shadertoy.com/view/";
@@ -39,7 +39,7 @@ fn get_shader_name_and_code(mut id: &str) -> Result<(String, String), ShadertoyE
     extract_from_json(&json)
 }
 
-fn get_json_string(id: &str) -> Result<String, ShadertoyError> {
+fn get_json_string(id: &str) -> error::Result<String> {
     let client = Client::new();
 
     let body = form_urlencoded::Serializer::new(String::new())
@@ -69,7 +69,7 @@ fn get_json_string(id: &str) -> Result<String, ShadertoyError> {
     }
 }
 
-fn extract_from_json(json: &Value) -> Result<(String, String), ShadertoyError> {
+fn extract_from_json(json: &Value) -> error::Result<(String, String)> {
     let name = format!("{}.frag", json[0]["info"]["name"].as_str().unwrap().replace(" ", "_")).to_lowercase();
     let mut code = String::new();
 

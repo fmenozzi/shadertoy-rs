@@ -1,6 +1,6 @@
 use argvalues::ArgValues;
 use runner::TextureId;
-use error::{ShadertoyError, LoadShaderError};
+use error::{self, ShadertoyError, LoadShaderError};
 
 use std::fs::File;
 use std::io::Read;
@@ -47,7 +47,7 @@ const SUFFIX: &'static str = "
     }
 ";
 
-pub fn load_fragment_shader(av: &ArgValues) -> Result<Vec<u8>, ShadertoyError> {
+pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
     let frag_src_str = if let Some(ref example) = av.examplename {
         match example.as_ref() {
             "seascape" => EXAMPLE_SEASCAPE_STR.to_string(),
@@ -92,7 +92,7 @@ pub fn load_vertex_shader() -> Vec<u8> {
 }
 
 pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut F) ->
-        Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, ShadertoyError>
+        error::Result<gfx::handle::ShaderResourceView<R, [f32; 4]>>
     where F: gfx::Factory<R>,
           R: gfx::Resources
 {

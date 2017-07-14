@@ -1,8 +1,3 @@
-use std::error;
-use std::fmt;
-use std::fmt::{Display, Formatter};
-use std::num::ParseFloatError;
-
 use image::ImageError;
 
 use gfx::PipelineStateError;
@@ -11,6 +6,14 @@ use gfx::CombinedError;
 use hyper;
 
 use serde_json;
+
+use std::error;
+use std::fmt;
+use std::fmt::{Display, Formatter};
+use std::num::ParseFloatError;
+use std::result;
+
+pub type Result<T> = result::Result<T, ShadertoyError>;
 
 // Custom error for failing to load shaders
 #[derive(Debug)]

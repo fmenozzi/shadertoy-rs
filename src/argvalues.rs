@@ -1,4 +1,4 @@
-use error::ShadertoyError;
+use error;
 
 use clap::App;
 
@@ -23,7 +23,7 @@ pub struct ArgValues {
 }
 
 impl ArgValues {
-    pub fn from_cli() -> Result<ArgValues, ShadertoyError> {
+    pub fn from_cli() -> error::Result<ArgValues> {
         // Load CLI matches
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();

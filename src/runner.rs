@@ -1,5 +1,5 @@
 use argvalues::ArgValues;
-use error::ShadertoyError;
+use error;
 use loader;
 use download;
 
@@ -62,7 +62,7 @@ const SCREEN_INDICES: [u16; 6] = [
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run(av: &ArgValues) -> Result<(), ShadertoyError> {
+pub fn run(av: &ArgValues) -> error::Result<()> {
     let (mut width, mut height) = (av.width, av.height);
 
     // Download shader if given id
