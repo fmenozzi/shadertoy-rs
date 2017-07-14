@@ -32,6 +32,8 @@ or just
 shadertoy get Ms2SD1
 ```
 
+Add the `-r/--run` flag to automatically run the downloaded shader
+
 For now, the CLI looks like this:
 
 ```
