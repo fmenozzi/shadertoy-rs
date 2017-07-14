@@ -58,6 +58,29 @@ impl error::Error for InvalidShaderIdError {
     }
 }
 
+// Custom error for failing to save downloaded shader
+#[derive(Debug)]
+pub struct SaveShaderError {
+    msg: String
+}
+impl SaveShaderError {
+    pub fn new(msg: String) -> SaveShaderError {
+        SaveShaderError {
+            msg: msg
+        }
+    }
+}
+impl Display for SaveShaderError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Fragment shader error: {}", self.msg)
+    }
+}
+impl error::Error for SaveShaderError {
+    fn description(&self) -> &str {
+        "Failed to save shader"
+    }
+}
+
 #[derive(Debug)]
 pub enum ShadertoyError {
     Parse(ParseFloatError),
@@ -68,6 +91,7 @@ pub enum ShadertoyError {
     DownloadShader(hyper::error::Error),
     Json(serde_json::Error),
     InvalidShaderId(InvalidShaderIdError),
+    SaveShader(SaveShaderError),
 }
 
 impl Display for ShadertoyError {
@@ -81,6 +105,7 @@ impl Display for ShadertoyError {
             ShadertoyError::DownloadShader(ref err)  => write!(f, "Shader download error: {}", err),
             ShadertoyError::Json(ref err)            => write!(f, "JSON error: {}", err),
             ShadertoyError::InvalidShaderId(ref err) => write!(f, "Invalid shader ID error: {}", err),
+            ShadertoyError::SaveShader(ref err)      => write!(f, "Shader saving error: {}", err),
         }
     }
 }
@@ -96,6 +121,7 @@ impl error::Error for ShadertoyError {
             ShadertoyError::DownloadShader(ref err)  => err.description(),
             ShadertoyError::Json(ref err)            => err.description(),
             ShadertoyError::InvalidShaderId(ref err) => err.description(),
+            ShadertoyError::SaveShader(ref err)      => err.description(),
         }
     }
 
@@ -109,6 +135,7 @@ impl error::Error for ShadertoyError {
             ShadertoyError::DownloadShader(ref err)  => Some(err),
             ShadertoyError::Json(ref err)            => Some(err),
             ShadertoyError::InvalidShaderId(ref err) => Some(err),
+            ShadertoyError::SaveShader(ref err)      => Some(err),
         }
     }
 }

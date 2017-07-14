@@ -1,4 +1,4 @@
-use error::{ShadertoyError, InvalidShaderIdError};
+use error::{ShadertoyError, InvalidShaderIdError, SaveShaderError};
 
 use hyper::{self, Client};
 use hyper::header::{Referer, ContentType};
@@ -7,9 +7,25 @@ use url::form_urlencoded;
 
 use serde_json::{self, Value};
 
-use std::io::Read;
+use std::io::{Read, Write};
+use std::fs::File;
 
-pub fn get_shader_info_and_code(mut id: &str) -> Result<(String, String), ShadertoyError> {
+pub fn download(id: &str) -> Result<(), ShadertoyError> {
+    let (name, code) = get_shader_name_and_code(id)?;
+
+    let mut file = match File::create(&name) {
+        Ok(file) => file,
+        Err(err) => return Err(ShadertoyError::SaveShader(SaveShaderError::new(format!("Unable to save shader {}: {}", name, err)))),
+    };
+
+    if let Err(err) = file.write_all(&code.as_bytes()) {
+        return Err(ShadertoyError::SaveShader(SaveShaderError::new(format!("Unable to save shader {}: {}", name, err))));
+    }
+
+    Ok(())
+}
+
+fn get_shader_name_and_code(mut id: &str) -> Result<(String, String), ShadertoyError> {
     let https_url = "https://www.shadertoy.com/view/";
     let http_url  = "http://www.shadertoy.com/view/";
     let url       = "www.shadertoy.com/view/";
@@ -54,18 +70,20 @@ fn get_json_string(id: &str) -> Result<String, ShadertoyError> {
 }
 
 fn extract_from_json(json: &Value) -> Result<(String, String), ShadertoyError> {
-    let (info, mut code) = (String::from("UNIMPLEMENTED"), String::new());
+    let name = format!("{}.frag", json[0]["info"]["name"].as_str().unwrap().replace(" ", "_")).to_lowercase();
+    let mut code = String::new();
 
     let shaders = json[0]["renderpass"].as_array().unwrap();
+
     if shaders.len() > 1 {
         for shader in shaders {
             if shader["name"] == "Image" {
-                code = String::from(shader["code"].as_str().expect("CODE SEGMENT"));
+                code = String::from(shader["code"].as_str().unwrap());
             }
         }
     } else {
-        code = String::from(shaders[0]["code"].as_str().expect("CODE SEGMENT"));
+        code = String::from(shaders[0]["code"].as_str().unwrap());
     }
 
-    Ok((info, code))
+    Ok((name, code))
 }

@@ -67,9 +67,7 @@ pub fn run(av: &ArgValues) -> Result<(), ShadertoyError> {
 
     // Download shader if given id
     if let Some(ref id) = av.getid {
-        let (info, code) = download::get_shader_info_and_code(id)?;
-        println!("Info:\n {}", info);
-        println!("Code:\n {}", code);
+        download::download(id)?;
     }
 
     // Load vertex and fragment shaders into byte buffers
