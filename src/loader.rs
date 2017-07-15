@@ -54,12 +54,9 @@ pub fn format_shader_src(src: &str) -> Vec<u8> {
 pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
     let frag_src_str = if let Some(ref example) = av.examplename {
         match example.as_ref() {
-            "seascape" => EXAMPLE_SEASCAPE_STR.to_string(),
+            "seascape"       => EXAMPLE_SEASCAPE_STR.to_string(),
             "elemental-ring" => EXAMPLE_ELEMENTAL_RING_STR.to_string(),
-            _ => {
-                let err = LoadShaderError::new(format!("No example named {}", example));
-                return Err(ShadertoyError::LoadShader(err));
-            },
+            _                => return Err(ShadertoyError::FindExampleShader(example.as_str().into())),
         }
     } else {
         // Read fragment shader from file into String buffer
