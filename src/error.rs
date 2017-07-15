@@ -19,18 +19,20 @@ pub type Result<T> = result::Result<T, ShadertoyError>;
 // Custom error for failing to load shaders
 #[derive(Debug)]
 pub struct LoadShaderError {
-    msg: String
+    shadername: String,
+    error: io::Error,
 }
 impl LoadShaderError {
-    pub fn new(msg: String) -> LoadShaderError {
+    pub fn new(shadername: &str, error: io::Error) -> LoadShaderError {
         LoadShaderError {
-            msg: msg
+            shadername: shadername.to_string(),
+            error: error,
         }
     }
 }
 impl Display for LoadShaderError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "Fragment shader error: {}", self.msg)
+        write!(f, "{}: {}", self.shadername, self.error)
     }
 }
 impl error::Error for LoadShaderError {
@@ -111,7 +113,7 @@ impl SaveShaderError {
 }
 impl Display for SaveShaderError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "({}): {}", self.shadername, self.error)
+        write!(f, "{}: {}", self.shadername, self.error)
     }
 }
 impl error::Error for SaveShaderError {

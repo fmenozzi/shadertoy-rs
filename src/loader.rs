@@ -66,13 +66,11 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
                 match File::open(&Path::new(&shaderpath)) {
                     Ok(mut file) => {
                         if let Err(e) = file.read_to_string(&mut frag_src_str) {
-                            let err = LoadShaderError::new(format!("Error reading from {}: {}", shaderpath, e));
-                            return Err(ShadertoyError::LoadShader(err));
+                            return Err(ShadertoyError::LoadShader(LoadShaderError::new(&shaderpath, e)));
                         }
                     },
                     Err(e) => {
-                        let err = LoadShaderError::new(format!("Error opening file {}: {}", shaderpath, e));
-                        return Err(ShadertoyError::LoadShader(err));
+                        return Err(ShadertoyError::LoadShader(LoadShaderError::new(&shaderpath, e)));
                     }
                 }
                 frag_src_str
