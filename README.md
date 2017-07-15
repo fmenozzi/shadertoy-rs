@@ -12,6 +12,7 @@ Make sure you build/run in release mode; textures take several seconds to load i
 So long as you restrict yourself to the supported uniforms, shaders copy-pasted directly from Shadertoy should run with no modifications. The following uniforms are currently supported, with more coming soon:
 
 * `iGlobalTime`
+* `iTime` (same as `iGlobalTime`; `iGlobalTime` will eventually be deprecated by Shadertoy)
 * `iResolution`
 * `iMouse`
 * `iFrame`

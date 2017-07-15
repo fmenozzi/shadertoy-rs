@@ -28,6 +28,7 @@ const PREFIX: &'static str = "
     #version 150 core
 
     uniform float     iGlobalTime;
+    uniform float     iTime;
     uniform vec3      iResolution;
     uniform vec4      iMouse;
     uniform int       iFrame;
