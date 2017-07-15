@@ -9,7 +9,7 @@ cargo run --release -- --example elemental-ring
 
 Make sure you build/run in release mode; textures take several seconds to load in debug mode. You can also download from [crates.io](https://crates.io/crates/shadertoy-rs).
 
-So long as you restrict yourself to the supported uniforms, shaders copy-pasted directly from Shadertoy should run with no modifications. The following uniforms are currently supported, with more coming soon:
+So long as you restrict yourself to the supported uniforms, shaders copy-pasted directly from Shadertoy should run with no modifications (if they don't, feel free to file an issue or open a pull request). The following uniforms are currently supported, with more coming soon:
 
 * `iGlobalTime`
 * `iTime` (same as `iGlobalTime`; `iGlobalTime` will eventually be deprecated by Shadertoy)
