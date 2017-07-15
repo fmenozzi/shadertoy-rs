@@ -8,6 +8,7 @@ use hyper;
 use serde_json;
 
 use std::error;
+use std::io;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::num::ParseFloatError;
@@ -69,18 +70,20 @@ impl<'a> From<&'a str> for InvalidShaderIdError {
 // Custom error for failing to save downloaded shader
 #[derive(Debug)]
 pub struct SaveShaderError {
-    msg: String
+    shadername: String,
+    error: io::Error,
 }
 impl SaveShaderError {
-    pub fn new(msg: String) -> SaveShaderError {
+    pub fn new(shadername: &str, error: io::Error) -> SaveShaderError {
         SaveShaderError {
-            msg: msg
+            shadername: shadername.to_string(),
+            error: error,
         }
     }
 }
 impl Display for SaveShaderError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "Fragment shader error: {}", self.msg)
+        write!(f, "({}): {}", self.shadername, self.error)
     }
 }
 impl error::Error for SaveShaderError {

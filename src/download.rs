@@ -15,11 +15,11 @@ pub fn download(id: &str) -> error::Result<(String, String)> {
 
     let mut file = match File::create(&name) {
         Ok(file) => file,
-        Err(err) => return Err(ShadertoyError::SaveShader(SaveShaderError::new(format!("Unable to save shader {}: {}", name, err)))),
+        Err(err) => return Err(ShadertoyError::SaveShader(SaveShaderError::new(&name, err))),
     };
 
     if let Err(err) = file.write_all(&code.as_bytes()) {
-        return Err(ShadertoyError::SaveShader(SaveShaderError::new(format!("Unable to save shader {}: {}", name, err))));
+        return Err(ShadertoyError::SaveShader(SaveShaderError::new(&name, err)));
     }
 
     Ok((name, code))
