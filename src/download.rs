@@ -1,6 +1,6 @@
-use error::{self, ShadertoyError, InvalidShaderIdError, SaveShaderError};
+use error::{self, ShadertoyError, SaveShaderError};
 
-use hyper::{self, Client};
+use hyper::Client;
 use hyper::header::{Referer, ContentType};
 
 use url::form_urlencoded;
@@ -57,14 +57,13 @@ fn get_json_string(id: &str) -> error::Result<String> {
     match res.read_to_string(&mut buf) {
         Ok(_) => {
             if buf == "[]" {
-                let err = InvalidShaderIdError::new(format!("Shader '{}' not found", id));
-                return Err(ShadertoyError::InvalidShaderId(err));
+                return Err(ShadertoyError::InvalidShaderId(id.into()))
             } else {
                 Ok(buf)
             }
         },
         Err(err) => {
-            Err(ShadertoyError::DownloadShader(hyper::error::Error::from(err)))
+            Err(ShadertoyError::DownloadShader(err.into()))
         }
     }
 }

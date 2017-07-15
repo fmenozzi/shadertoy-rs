@@ -41,23 +41,28 @@ impl error::Error for LoadShaderError {
 // Custom error for specifying invalid shader id
 #[derive(Debug)]
 pub struct InvalidShaderIdError {
-    msg: String
+    id: String
 }
 impl InvalidShaderIdError {
-    pub fn new(msg: String) -> InvalidShaderIdError {
+    pub fn new(id: &str) -> InvalidShaderIdError {
         InvalidShaderIdError {
-            msg: msg
+            id: id.to_string()
         }
     }
 }
 impl Display for InvalidShaderIdError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "Invalid shader ID error: {}", self.msg)
+        write!(f, "{}", self.id)
     }
 }
 impl error::Error for InvalidShaderIdError {
     fn description(&self) -> &str {
         "Invalid shader ID specified"
+    }
+}
+impl<'a> From<&'a str> for InvalidShaderIdError {
+    fn from(s: &'a str) -> Self {
+        InvalidShaderIdError::new(s)
     }
 }
 
