@@ -1,6 +1,6 @@
 use argvalues::ArgValues;
 use runner::TextureId;
-use error::{self, ShadertoyError, LoadShaderError};
+use error::{self, UNSUPPORTED_UNIFORMS, ShadertoyError, LoadShaderError};
 
 use std::fs::File;
 use std::io::Read;
@@ -82,7 +82,16 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
         }
     };
 
-    Ok(format_shader_src(&frag_src_str))
+    let unsupported_uniforms: Vec<String> = UNSUPPORTED_UNIFORMS.iter()
+        .map(|s| s.to_string())
+        .filter(|uu| frag_src_str.find(uu).is_some())
+        .collect();
+
+    if unsupported_uniforms.is_empty() {
+        Ok(format_shader_src(&frag_src_str))
+    } else {
+        Err(ShadertoyError::UnsupportedUniform(unsupported_uniforms.into()))
+    }
 }
 
 pub fn load_vertex_shader() -> Vec<u8> {

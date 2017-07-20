@@ -14,7 +14,17 @@ use std::fmt::{Display, Formatter};
 use std::num::ParseFloatError;
 use std::result;
 
+// Custom Result type for shadertoy-specific errors
 pub type Result<T> = result::Result<T, ShadertoyError>;
+
+// All unsupported uniforms
+pub static UNSUPPORTED_UNIFORMS: [&'static str; 5] = [
+    "iTimeDelta",
+    "iChannelTime",
+    "iChannelResolution",
+    "iDate",
+    "iSampleRate",
+];
 
 // Custom error for failing to load shaders
 #[derive(Debug)]
@@ -122,6 +132,34 @@ impl error::Error for SaveShaderError {
     }
 }
 
+// Custom error for attempting to run a shader with unsupported uniforms
+#[derive(Debug)]
+pub struct UnsupportedUniformError {
+    unsupported_uniforms: Vec<String>,
+}
+impl UnsupportedUniformError {
+    pub fn new(unsupported_uniforms: Vec<String>) -> UnsupportedUniformError {
+        UnsupportedUniformError {
+            unsupported_uniforms: unsupported_uniforms,
+        }
+    }
+}
+impl Display for UnsupportedUniformError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.unsupported_uniforms)
+    }
+}
+impl error::Error for UnsupportedUniformError {
+    fn description(&self) -> &str {
+        "Attempted to use shader with unsupported uniforms"
+    }
+}
+impl From<Vec<String>> for UnsupportedUniformError {
+    fn from(v: Vec<String>) -> Self {
+        UnsupportedUniformError::new(v)
+    }
+}
+
 #[derive(Debug)]
 pub enum ShadertoyError {
     Parse(ParseFloatError),
@@ -134,21 +172,23 @@ pub enum ShadertoyError {
     Json(serde_json::Error),
     InvalidShaderId(InvalidShaderIdError),
     SaveShader(SaveShaderError),
+    UnsupportedUniform(UnsupportedUniformError),
 }
 
 impl Display for ShadertoyError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
-            ShadertoyError::Parse(ref err)             => write!(f, "Parse error: {}", err),
-            ShadertoyError::Image(ref err)             => write!(f, "Image error: {}", err),
-            ShadertoyError::Texture(ref err)           => write!(f, "Texture error: {}", err),
-            ShadertoyError::Pipeline(ref err)          => write!(f, "Pipeline error: {}", err),
-            ShadertoyError::LoadShader(ref err)        => write!(f, "Shader loading error: {}", err),
-            ShadertoyError::FindExampleShader(ref err) => write!(f, "Failed to find example shader {}", err),
-            ShadertoyError::DownloadShader(ref err)    => write!(f, "Shader download error: {}", err),
-            ShadertoyError::Json(ref err)              => write!(f, "JSON error: {}", err),
-            ShadertoyError::InvalidShaderId(ref err)   => write!(f, "Invalid shader ID error: {}", err),
-            ShadertoyError::SaveShader(ref err)        => write!(f, "Shader saving error: {}", err),
+            ShadertoyError::Parse(ref err)              => write!(f, "Parse error: {}", err),
+            ShadertoyError::Image(ref err)              => write!(f, "Image error: {}", err),
+            ShadertoyError::Texture(ref err)            => write!(f, "Texture error: {}", err),
+            ShadertoyError::Pipeline(ref err)           => write!(f, "Pipeline error: {}", err),
+            ShadertoyError::LoadShader(ref err)         => write!(f, "Shader loading error: {}", err),
+            ShadertoyError::FindExampleShader(ref err)  => write!(f, "Failed to find example shader {}", err),
+            ShadertoyError::DownloadShader(ref err)     => write!(f, "Shader download error: {}", err),
+            ShadertoyError::Json(ref err)               => write!(f, "JSON error: {}", err),
+            ShadertoyError::InvalidShaderId(ref err)    => write!(f, "Invalid shader ID error: {}", err),
+            ShadertoyError::SaveShader(ref err)         => write!(f, "Shader saving error: {}", err),
+            ShadertoyError::UnsupportedUniform(ref err) => write!(f, "The following uniforms are not supported: {}", err),
         }
     }
 }
@@ -156,36 +196,38 @@ impl Display for ShadertoyError {
 impl error::Error for ShadertoyError {
     fn description(&self) -> &str {
         match *self {
-            ShadertoyError::Parse(ref err)             => error::Error::description(err),
-            ShadertoyError::Image(ref err)             => err.description(),
-            ShadertoyError::Texture(ref err)           => err.description(),
-            ShadertoyError::Pipeline(ref err)          => err.description(),
-            ShadertoyError::LoadShader(ref err)        => err.description(),
-            ShadertoyError::FindExampleShader(ref err) => err.description(),
-            ShadertoyError::DownloadShader(ref err)    => err.description(),
-            ShadertoyError::Json(ref err)              => err.description(),
-            ShadertoyError::InvalidShaderId(ref err)   => err.description(),
-            ShadertoyError::SaveShader(ref err)        => err.description(),
+            ShadertoyError::Parse(ref err)              => error::Error::description(err),
+            ShadertoyError::Image(ref err)              => err.description(),
+            ShadertoyError::Texture(ref err)            => err.description(),
+            ShadertoyError::Pipeline(ref err)           => err.description(),
+            ShadertoyError::LoadShader(ref err)         => err.description(),
+            ShadertoyError::FindExampleShader(ref err)  => err.description(),
+            ShadertoyError::DownloadShader(ref err)     => err.description(),
+            ShadertoyError::Json(ref err)               => err.description(),
+            ShadertoyError::InvalidShaderId(ref err)    => err.description(),
+            ShadertoyError::SaveShader(ref err)         => err.description(),
+            ShadertoyError::UnsupportedUniform(ref err) => err.description(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
-            ShadertoyError::Parse(ref err)             => Some(err),
-            ShadertoyError::Image(ref err)             => Some(err),
-            ShadertoyError::Texture(ref err)           => Some(err),
-            ShadertoyError::Pipeline(ref err)          => Some(err),
-            ShadertoyError::LoadShader(ref err)        => Some(err),
-            ShadertoyError::FindExampleShader(ref err) => Some(err),
-            ShadertoyError::DownloadShader(ref err)    => Some(err),
-            ShadertoyError::Json(ref err)              => Some(err),
-            ShadertoyError::InvalidShaderId(ref err)   => Some(err),
-            ShadertoyError::SaveShader(ref err)        => Some(err),
+            ShadertoyError::Parse(ref err)              => Some(err),
+            ShadertoyError::Image(ref err)              => Some(err),
+            ShadertoyError::Texture(ref err)            => Some(err),
+            ShadertoyError::Pipeline(ref err)           => Some(err),
+            ShadertoyError::LoadShader(ref err)         => Some(err),
+            ShadertoyError::FindExampleShader(ref err)  => Some(err),
+            ShadertoyError::DownloadShader(ref err)     => Some(err),
+            ShadertoyError::Json(ref err)               => Some(err),
+            ShadertoyError::InvalidShaderId(ref err)    => Some(err),
+            ShadertoyError::SaveShader(ref err)         => Some(err),
+            ShadertoyError::UnsupportedUniform(ref err) => Some(err),
         }
     }
 }
 
-// Automatic error conversions
+// Automatic error conversions for external errors
 impl From<ParseFloatError> for ShadertoyError {
     fn from(pfe: ParseFloatError) -> Self {
         ShadertoyError::Parse(pfe)
