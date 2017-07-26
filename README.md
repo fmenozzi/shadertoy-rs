@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fmenozzi/shadertoy-rs.svg?branch=master)](https://travis-ci.org/fmenozzi/shadertoy-rs)
+
 Desktop [Shadertoy](https://www.shadertoy.com) client, written in Rust.
 
 While it's still a work in progress, you can run some example shaders to see that it's working:
