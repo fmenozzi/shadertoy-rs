@@ -3,7 +3,7 @@ use runner::TextureId;
 use error::{self, UNSUPPORTED_UNIFORMS, ShadertoyError, LoadShaderError};
 
 use std::fs::File;
-use std::io::Read;
+use std::io::{self, Read};
 use std::path::Path;
 
 use gfx;
@@ -48,6 +48,10 @@ const SUFFIX: &'static str = "
     }
 ";
 
+fn return_load_shader_error<E>(shaderpath: &str, err: io::Error) -> error::Result<E> {
+    Err(ShadertoyError::LoadShader(LoadShaderError::new(shaderpath, err)))
+}
+
 pub fn format_shader_src(src: &str) -> Vec<u8> {
     format!("{}\n{}\n{}", PREFIX, src, SUFFIX).into_bytes()
 }
@@ -64,16 +68,13 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
         match av.shaderpath {
             Some(ref shaderpath) => {
                 let mut frag_src_str = String::new();
-                match File::open(&Path::new(&shaderpath)) {
-                    Ok(mut file) => {
-                        if let Err(e) = file.read_to_string(&mut frag_src_str) {
-                            return Err(ShadertoyError::LoadShader(LoadShaderError::new(&shaderpath, e)));
-                        }
-                    },
-                    Err(e) => {
-                        return Err(ShadertoyError::LoadShader(LoadShaderError::new(&shaderpath, e)));
-                    }
-                }
+
+                File::open(&Path::new(&shaderpath)).or_else(|err| {
+                    return_load_shader_error(&shaderpath, err)
+                })?.read_to_string(&mut frag_src_str).or_else(|err| {
+                    return_load_shader_error(&shaderpath, err)
+                })?;
+
                 frag_src_str
             },
             None => {

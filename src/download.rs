@@ -7,22 +7,23 @@ use url::form_urlencoded;
 
 use serde_json::{self, Value};
 
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::fs::File;
 
 pub fn download(id: &str) -> error::Result<(String, String)> {
     let (name, code) = get_shader_name_and_code(id)?;
 
-    let mut file = match File::create(&name) {
-        Ok(file) => file,
-        Err(err) => return Err(ShadertoyError::SaveShader(SaveShaderError::new(&name, err))),
-    };
-
-    if let Err(err) = file.write_all(&code.as_bytes()) {
-        return Err(ShadertoyError::SaveShader(SaveShaderError::new(&name, err)));
-    }
+    File::create(&name).or_else(|err| {
+        return_save_shader_error(&name, err)
+    })?.write_all(&code.as_bytes()).or_else(|err| {
+        return_save_shader_error(&name, err)
+    })?;
 
     Ok((name, code))
+}
+
+fn return_save_shader_error<E>(name: &str, err: io::Error) -> error::Result<E> {
+    Err(ShadertoyError::SaveShader(SaveShaderError::new(name, err)))
 }
 
 fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
