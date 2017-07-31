@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/fmenozzi/shadertoy-rs.svg?branch=master)](https://travis-ci.org/fmenozzi/shadertoy-rs)
+[![Crates.io Version](https://img.shields.io/crates/v/shadertoy-rs.svg)](https://crates.io/crates/shadertoy-rs)
 
 Desktop [Shadertoy](https://www.shadertoy.com) client, written in Rust.
 
