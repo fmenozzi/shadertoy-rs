@@ -71,6 +71,12 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     let frag_src_buf = match av.getid {
         Some(ref id) => {
             let (_, shadercode) = download::download(id)?;
+
+            // Don't run default shader if downloading (with no --run flag)
+            if av.getid.is_some() && !av.andrun {
+                return Ok(());
+            }
+
             if av.andrun {
                 loader::format_shader_src(&shadercode)
             } else {
