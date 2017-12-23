@@ -15,7 +15,7 @@ pub fn download(id: &str) -> error::Result<(String, String)> {
 
     File::create(&name).or_else(|err| {
         return_save_shader_error(&name, err)
-    })?.write_all(&code.as_bytes()).or_else(|err| {
+    })?.write_all(code.as_bytes()).or_else(|err| {
         return_save_shader_error(&name, err)
     })?;
 
@@ -58,7 +58,7 @@ fn get_json_string(id: &str) -> error::Result<String> {
     match res.read_to_string(&mut buf) {
         Ok(_) => {
             if buf == "[]" {
-                return Err(ShadertoyError::InvalidShaderId(id.into()))
+                Err(ShadertoyError::InvalidShaderId(id.into()))
             } else {
                 Ok(buf)
             }

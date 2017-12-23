@@ -24,7 +24,7 @@ pub static EXAMPLE_SEASCAPE_STR: &'static str = include_str!("../examples/seasca
 pub static EXAMPLE_ELEMENTAL_RING_STR: &'static str = include_str!("../examples/elemental-ring.frag");
 
 // Fragment shader prefix
-const PREFIX: &'static str = "
+const PREFIX: &str = "
     #version 150 core
 
     uniform float     iGlobalTime;
@@ -42,7 +42,7 @@ const PREFIX: &'static str = "
 ";
 
 // Fragment shader suffix
-const SUFFIX: &'static str = "
+const SUFFIX: &str = "
     void main() {
         mainImage(fragColor, fragCoord);
     }
@@ -70,9 +70,9 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
                 let mut frag_src_str = String::new();
 
                 File::open(&Path::new(&shaderpath)).or_else(|err| {
-                    return_load_shader_error(&shaderpath, err)
+                    return_load_shader_error(shaderpath, err)
                 })?.read_to_string(&mut frag_src_str).or_else(|err| {
-                    return_load_shader_error(&shaderpath, err)
+                    return_load_shader_error(shaderpath, err)
                 })?;
 
                 frag_src_str
@@ -99,7 +99,7 @@ pub fn load_vertex_shader() -> Vec<u8> {
     DEFAULT_VERT_SRC_BUF.to_vec()
 }
 
-pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut F) ->
+pub fn load_texture<F, R>(id: &TextureId, texpath: &Option<String>, factory: &mut F) ->
         error::Result<gfx::handle::ShaderResourceView<R, [f32; 4]>>
     where F: gfx::Factory<R>,
           R: gfx::Resources
@@ -109,7 +109,7 @@ pub fn load_texture<F, R>(id: TextureId, texpath: &Option<String>, factory: &mut
     let default_buf = if texpath.is_some() {
         None
     } else {
-        match id {
+        match *id {
             TextureId::ZERO  => Some(DEFAULT_TEXTURE0_BUF),
             TextureId::ONE   => Some(DEFAULT_TEXTURE1_BUF),
             TextureId::TWO   => Some(DEFAULT_TEXTURE2_BUF),

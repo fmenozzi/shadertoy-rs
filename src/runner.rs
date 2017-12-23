@@ -80,11 +80,11 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             if av.andrun {
                 loader::format_shader_src(&shadercode)
             } else {
-                loader::load_fragment_shader(&av)?
+                loader::load_fragment_shader(av)?
             }
         },
         None => {
-            loader::load_fragment_shader(&av)?
+            loader::load_fragment_shader(av)?
         }
     };
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
@@ -104,10 +104,10 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
     // Load textures
-    let texture0 = loader::load_texture(TextureId::ZERO, &av.texture0path, &mut factory)?;
-    let texture1 = loader::load_texture(TextureId::ONE, &av.texture1path, &mut factory)?;
-    let texture2 = loader::load_texture(TextureId::TWO, &av.texture2path, &mut factory)?;
-    let texture3 = loader::load_texture(TextureId::THREE, &av.texture3path, &mut factory)?;
+    let texture0 = loader::load_texture(&TextureId::ZERO, &av.texture0path, &mut factory)?;
+    let texture1 = loader::load_texture(&TextureId::ONE, &av.texture1path, &mut factory)?;
+    let texture2 = loader::load_texture(&TextureId::TWO, &av.texture2path, &mut factory)?;
+    let texture3 = loader::load_texture(&TextureId::THREE, &av.texture3path, &mut factory)?;
 
     let sampler = factory.create_sampler_linear();
 
@@ -146,7 +146,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
                 Event::KeyboardInput(ElementState::Pressed, _, Some(VirtualKeyCode::F5)) => {
                     // Reload fragment shader into byte buffer
-                    let frag_src_res = loader::load_fragment_shader(&av)?;
+                    let frag_src_res = loader::load_fragment_shader(av)?;
                     let frag_src_buf = frag_src_res.as_slice();
 
                     // Recreate pipeline
@@ -203,7 +203,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
         // Elapsed time
         let elapsed = start_time.elapsed();
-        let elapsed_ms = (elapsed.as_secs() * 1000) + (elapsed.subsec_nanos()/1000000) as u64;
+        let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_nanos()/1_000_000);
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
         data.i_time = elapsed_sec;
