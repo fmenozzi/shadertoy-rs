@@ -142,78 +142,80 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     let mut xyzw = [0.0; 4];
 
     let mut start_time = Instant::now();
+    let mut running = true;
+    while running {
+        events_loop.poll_events(|event| {
+            use glutin::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 
-    events_loop.run_forever(move |event| {
-        use glutin::{ControlFlow, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
-
-        if let Event::WindowEvent { event, .. } = event {
-            match event {
-                WindowEvent::Closed |
-                WindowEvent::KeyboardInput {
-                    input: KeyboardInput {
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
+                    WindowEvent::Closed |
+                    WindowEvent::KeyboardInput {
+                        input: KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        },
                         ..
-                    },
-                    ..
-                } => return ControlFlow::Break,
+                    } => running = false,
 
-                WindowEvent::KeyboardInput {
-                    input: KeyboardInput {
-                        virtual_keycode: Some(VirtualKeyCode::F5),
+                    WindowEvent::KeyboardInput {
+                        input: KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::F5),
+                            ..
+                        },
                         ..
+                    } => {
+                        // Reload fragment shader into byte buffer
+                        let frag_src_res = loader::load_fragment_shader(av);
+                        if frag_src_res.is_err() {
+                            return;
+                        }
+                        let frag_src_res = frag_src_res.unwrap();
+                        let frag_src_buf = frag_src_res.as_slice();
+
+                        // Recreate pipeline
+                        let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
+                        if pso_res.is_err() {
+                            return;
+                        }
+                        pso = pso_res.unwrap();
+
+                        // Reset uniforms
+                        data.i_global_time = 0.0;
+                        data.i_time = 0.0;
+                        data.i_resolution = [width, height, width/height];
+                        data.i_mouse = [0.0; 4];
+                        data.i_frame = -1;
+
+                        start_time = Instant::now();
                     },
-                    ..
-                } => {
-                    // Reload fragment shader into byte buffer
-                    let frag_src_res = loader::load_fragment_shader(av);
-                    if frag_src_res.is_err() {
-                        return ControlFlow::Break;
-                    }
-                    let frag_src_res = frag_src_res.unwrap();
-                    let frag_src_buf = frag_src_res.as_slice();
 
-                    // Recreate pipeline
-                    let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
-                    if pso_res.is_err() {
-                        return ControlFlow::Break;
-                    }
-                    pso = pso_res.unwrap();
+                    WindowEvent::Resized(new_width, new_height) => {
+                        gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+                        window.resize(new_width, new_height);
 
-                    // Reset uniforms
-                    data.i_global_time = 0.0;
-                    data.i_time = 0.0;
-                    data.i_resolution = [width, height, width/height];
-                    data.i_mouse = [0.0; 4];
-                    data.i_frame = -1;
+                        width = new_width as f32;
+                        height = new_height as f32;
+                    },
 
-                    start_time = Instant::now();
-                },
+                    WindowEvent::CursorMoved{position: (x,y), ..} => {
+                        mx = x as f32;
+                        my = height - y as f32; // Flip y-axis
+                    },
 
-                WindowEvent::Resized(new_width, new_height) => {
-                    gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
-                    window.resize(new_width, new_height);
+                    WindowEvent::MouseInput{state, button, ..} => {
+                        last_mouse = current_mouse;
+                        if state == ElementState::Pressed && button == MouseButton::Left {
+                            current_mouse = ElementState::Pressed;
+                        } else {
+                            current_mouse = ElementState::Released;
+                        }
+                    },
 
-                    width = new_width as f32;
-                    height = new_height as f32;
-                },
-
-                WindowEvent::CursorMoved{position: (x,y), ..} => {
-                    mx = x as f32;
-                    my = height - y as f32; // Flip y-axis
-                },
-
-                WindowEvent::MouseInput{state, button, ..} => {
-                    last_mouse = current_mouse;
-                    if state == ElementState::Pressed && button == MouseButton::Left {
-                        current_mouse = ElementState::Pressed;
-                    } else {
-                        current_mouse = ElementState::Released;
-                    }
-                },
-
-                _ => (),
+                    _ => (),
+                }
             }
-        }
+        });
 
         // Mouse
         if current_mouse == ElementState::Pressed {
@@ -248,9 +250,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
         device.cleanup();
-
-        ControlFlow::Continue
-    });
+    }
 
     Ok(())
 }
