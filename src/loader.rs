@@ -105,6 +105,7 @@ pub fn load_texture<F, R>(id: &TextureId, texpath: &Option<String>, factory: &mu
           R: gfx::Resources
 {
     use gfx::format::Rgba8;
+    use gfx::texture::Mipmap;
 
     let default_buf = if texpath.is_some() {
         None
@@ -125,7 +126,7 @@ pub fn load_texture<F, R>(id: &TextureId, texpath: &Option<String>, factory: &mu
 
     let (w, h) = img.dimensions();
     let kind = gfx::texture::Kind::D2(w as u16, h as u16, gfx::texture::AaMode::Single);
-    let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(kind, &[&img])?;
+    let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(kind, Mipmap::Allocated, &[&img])?;
 
     Ok(view)
 }

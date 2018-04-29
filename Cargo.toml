@@ -12,9 +12,9 @@ keywords = ["shadertoy", "graphics", "shaders"]
 categories = ["rendering"]
 
 [dependencies]
-gfx = "0.14"
-gfx_window_glutin = "0.14"
-glutin = "0.7"
+gfx = "0.17"
+gfx_window_glutin = "0.21"
+glutin = "0.13"
 clap = { version = "2.23.2", features = ["yaml"] }
 image = "0.13"
 log = "0.3"

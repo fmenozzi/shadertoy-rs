@@ -10,7 +10,7 @@ use gfx_window_glutin;
 use gfx::traits::FactoryExt;
 use gfx::Device;
 
-use glutin::{VirtualKeyCode, ElementState, MouseButton, Event};
+use glutin::{ElementState, MouseButton, GlContext};
 
 use std::time::Instant;
 
@@ -45,7 +45,7 @@ gfx_defines! {
         i_channel3: gfx::TextureSampler<[f32; 4]> = "iChannel3",
 
         // Output color
-        frag_color: gfx::BlendTarget<ColorFormat> = ("fragColor", gfx::state::MASK_ALL, gfx::preset::blend::ALPHA),
+        frag_color: gfx::RenderTarget<ColorFormat> = "fragColor",
     }
 }
 
@@ -89,17 +89,23 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     };
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
-    let builder = glutin::WindowBuilder::new()
+    let mut events_loop = glutin::EventsLoop::new();
+    let window_config = glutin::WindowBuilder::new()
         .with_title("shadertoy-rs")
-        .with_dimensions(width as u32, height as u32)
-        .with_vsync();
+        .with_dimensions(width as u32, height as u32);
+
+    let (api, version) = (glutin::Api::OpenGl, (3, 2));
+
+    let context = glutin::ContextBuilder::new()
+        .with_gl(glutin::GlRequest::Specific(api, version))
+        .with_vsync(true);
 
     let (window, mut device, mut factory, main_color, mut main_depth) =
-        gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
+        gfx_window_glutin::init::<ColorFormat, DepthFormat>(window_config, context, &events_loop);
 
-    let mut encoder: gfx::Encoder<_,_> = factory.create_command_buffer().into();
+    let mut encoder = gfx::Encoder::from(factory.create_command_buffer());
 
-    let mut pipeline = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new())?;
+    let mut pso = factory.create_pipeline_simple(&vert_src_buf, &frag_src_buf, pipe::new()).unwrap();
 
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
@@ -137,20 +143,41 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
     let mut start_time = Instant::now();
 
-    loop {
-        for event in window.poll_events() {
-            match event {
-                Event::KeyboardInput(_, _, Some(VirtualKeyCode::Escape)) | Event::Closed => {
-                    return Ok(());
-                },
+    events_loop.run_forever(move |event| {
+        use glutin::{ControlFlow, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 
-                Event::KeyboardInput(ElementState::Pressed, _, Some(VirtualKeyCode::F5)) => {
+        if let Event::WindowEvent { event, .. } = event {
+            match event {
+                WindowEvent::Closed |
+                WindowEvent::KeyboardInput {
+                    input: KeyboardInput {
+                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        ..
+                    },
+                    ..
+                } => return ControlFlow::Break,
+
+                WindowEvent::KeyboardInput {
+                    input: KeyboardInput {
+                        virtual_keycode: Some(VirtualKeyCode::F5),
+                        ..
+                    },
+                    ..
+                } => {
                     // Reload fragment shader into byte buffer
-                    let frag_src_res = loader::load_fragment_shader(av)?;
+                    let frag_src_res = loader::load_fragment_shader(av);
+                    if frag_src_res.is_err() {
+                        return ControlFlow::Break;
+                    }
+                    let frag_src_res = frag_src_res.unwrap();
                     let frag_src_buf = frag_src_res.as_slice();
 
                     // Recreate pipeline
-                    pipeline = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new())?;
+                    let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
+                    if pso_res.is_err() {
+                        return ControlFlow::Break;
+                    }
+                    pso = pso_res.unwrap();
 
                     // Reset uniforms
                     data.i_global_time = 0.0;
@@ -162,19 +189,20 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
                     start_time = Instant::now();
                 },
 
-                Event::Resized(new_width, new_height) => {
+                WindowEvent::Resized(new_width, new_height) => {
                     gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+                    window.resize(new_width, new_height);
 
                     width = new_width as f32;
                     height = new_height as f32;
                 },
 
-                Event::MouseMoved(x, y) => {
+                WindowEvent::CursorMoved{position: (x,y), ..} => {
                     mx = x as f32;
                     my = height - y as f32; // Flip y-axis
                 },
 
-                Event::MouseInput(state, button) => {
+                WindowEvent::MouseInput{state, button, ..} => {
                     last_mouse = current_mouse;
                     if state == ElementState::Pressed && button == MouseButton::Left {
                         current_mouse = ElementState::Pressed;
@@ -183,7 +211,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
                     }
                 },
 
-                _ => ()
+                _ => (),
             }
         }
 
@@ -216,9 +244,13 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
         // Draw
         encoder.clear(&data.frag_color, CLEAR_COLOR);
-        encoder.draw(&slice, &pipeline, &data);
+        encoder.draw(&slice, &pso, &data);
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
         device.cleanup();
-    }
+
+        ControlFlow::Continue
+    });
+
+    Ok(())
 }
