@@ -8,6 +8,7 @@ extern crate env_logger;
 extern crate hyper;
 extern crate url;
 extern crate serde_json;
+extern crate notify;
 
 mod argvalues;
 mod runner;

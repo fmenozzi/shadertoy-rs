@@ -12,7 +12,11 @@ use gfx::Device;
 
 use glutin::{ElementState, MouseButton, GlContext};
 
-use std::time::Instant;
+use notify::{Watcher, RecursiveMode, DebouncedEvent, watcher};
+use std::sync::mpsc::{channel, TryRecvError};
+use std::path::Path;
+
+use std::time::{Instant, Duration};
 
 pub enum TextureId {
     ZERO,
@@ -89,6 +93,22 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     };
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
+    let (tx, rx) = channel();
+    let mut watcher = watcher(tx, Duration::from_millis(250))
+        .expect("couldn't initialise notify");
+
+    let shader_basename = match av.shaderpath {
+        None => None,
+        Some(ref path) => {
+            let path = Path::new(path);
+
+            watcher.watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
+                .expect("couldn't register inotify watch");
+
+            Some(path.file_name().unwrap())
+        }
+    };
+
     let mut events_loop = glutin::EventsLoop::new();
     let window_config = glutin::WindowBuilder::new()
         .with_title("shadertoy-rs")
@@ -143,7 +163,10 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
     let mut start_time = Instant::now();
     let mut running = true;
+
     while running {
+        let mut shader_modified = false;
+
         events_loop.poll_events(|event| {
             use glutin::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 
@@ -164,31 +187,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
                             ..
                         },
                         ..
-                    } => {
-                        // Reload fragment shader into byte buffer
-                        let frag_src_res = loader::load_fragment_shader(av);
-                        if frag_src_res.is_err() {
-                            return;
-                        }
-                        let frag_src_res = frag_src_res.unwrap();
-                        let frag_src_buf = frag_src_res.as_slice();
-
-                        // Recreate pipeline
-                        let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
-                        if pso_res.is_err() {
-                            return;
-                        }
-                        pso = pso_res.unwrap();
-
-                        // Reset uniforms
-                        data.i_global_time = 0.0;
-                        data.i_time = 0.0;
-                        data.i_resolution = [width, height, width/height];
-                        data.i_mouse = [0.0; 4];
-                        data.i_frame = -1;
-
-                        start_time = Instant::now();
-                    },
+                    } => shader_modified = true,
 
                     WindowEvent::Resized(new_width, new_height) => {
                         gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
@@ -216,6 +215,72 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
                 }
             }
         });
+
+        // notify handling
+        shader_modified = shader_modified | {
+            let mut have_events = false;
+            let basename = shader_basename.unwrap();
+
+            loop {
+                match rx.try_recv() {
+                    Err(TryRecvError::Empty) => break,
+
+                    // we handle both create and write here because some text editors write
+                    // the modified file to a tmpfile then move it 
+                    Ok(DebouncedEvent::Create(ref path)) | Ok(DebouncedEvent::Write(ref path))
+                        | Ok(DebouncedEvent::Rename(_, ref path))
+                        if path.ends_with(basename) => have_events = true,
+
+                    Ok(_ev) => {
+                        // println!(" >> unhandled notify event: {:?}", _ev);
+                    },
+
+                    Err(TryRecvError::Disconnected) => {
+                        println!(" !! watch disconnected");
+                        break;
+                    }
+                }
+            }
+
+            have_events
+        };
+
+        // this is a while loop so we can "break;" out of it prematurely
+        // in the event that we can't recompile the shader, this means that the
+        // old shader just continues running, and then we dump the error to stdout.
+        while shader_modified {
+            // Reload fragment shader into byte buffer
+            let frag_src_res = loader::load_fragment_shader(av);
+            if frag_src_res.is_err() {
+                println!("failed to load fragment shader");
+                break;
+            }
+            let frag_src_res = frag_src_res.unwrap();
+            let frag_src_buf = frag_src_res.as_slice();
+
+            // Recreate pipeline
+            let pso_res = factory
+                .create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
+
+            pso = match pso_res {
+                Ok(pso) => pso,
+                Err(e) => {
+                    println!("failed to create pipeline: {:?}", e);
+                    break;
+                }
+            };
+
+            // Reset uniforms
+            data.i_global_time = 0.0;
+            data.i_time = 0.0;
+            data.i_resolution = [width, height, width/height];
+            data.i_mouse = [0.0; 4];
+            data.i_frame = -1;
+
+            start_time = Instant::now();
+
+            break;
+        }
 
         // Mouse
         if current_mouse == ElementState::Pressed {
