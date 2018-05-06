@@ -1,11 +1,8 @@
 use error::{self, ShadertoyError, SaveShaderError};
 
-use hyper::Client;
-use hyper::header::{Referer, ContentType};
-
-use url::form_urlencoded;
-
 use serde_json::{self, Value};
+
+use reqwest::{Client, header};
 
 use std::io::{self, Read, Write};
 use std::fs::File;
@@ -43,14 +40,10 @@ fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
 fn get_json_string(id: &str) -> error::Result<String> {
     let client = Client::new();
 
-    let body = form_urlencoded::Serializer::new(String::new())
-        .extend_pairs(vec![("s", format!("{{\"shaders\": [\"{}\"]}}", id))])
-        .finish();
-
     let mut res = client.post("https://www.shadertoy.com/shadertoy/")
-        .header(Referer("https://www.shadertoy.com/".to_string()))
-        .header(ContentType("application/x-www-form-urlencoded".parse().unwrap()))
-        .body(&body)
+        .header(header::Referer::new("https://www.shadertoy.com/"))
+        .header(header::ContentType::form_url_encoded())
+        .form(&[("s", format!("{{\"shaders\": [\"{}\"]}}", id))])
         .send()?;
 
     let mut buf = String::new();
@@ -64,7 +57,7 @@ fn get_json_string(id: &str) -> error::Result<String> {
             }
         },
         Err(err) => {
-            Err(ShadertoyError::DownloadShader(err.into()))
+            Err(ShadertoyError::Io(err))
         }
     }
 }

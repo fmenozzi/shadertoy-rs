@@ -3,7 +3,7 @@ use image::ImageError;
 use gfx::PipelineStateError;
 use gfx::CombinedError;
 
-use hyper;
+use reqwest;
 
 use serde_json;
 
@@ -168,11 +168,12 @@ pub enum ShadertoyError {
     Pipeline(PipelineStateError<String>),
     LoadShader(LoadShaderError),
     FindExampleShader(FindExampleShaderError),
-    DownloadShader(hyper::error::Error),
+    DownloadShader(reqwest::Error),
     Json(serde_json::Error),
     InvalidShaderId(InvalidShaderIdError),
     SaveShader(SaveShaderError),
     UnsupportedUniform(UnsupportedUniformError),
+    Io(io::Error),
 }
 
 impl Display for ShadertoyError {
@@ -189,6 +190,7 @@ impl Display for ShadertoyError {
             ShadertoyError::InvalidShaderId(ref err)    => write!(f, "Invalid shader ID error: {}", err),
             ShadertoyError::SaveShader(ref err)         => write!(f, "Shader saving error: {}", err),
             ShadertoyError::UnsupportedUniform(ref err) => write!(f, "The following uniforms are not supported: {}", err),
+            ShadertoyError::Io(ref err)                 => write!(f, "IO error: {}", err),
         }
     }
 }
@@ -207,6 +209,7 @@ impl error::Error for ShadertoyError {
             ShadertoyError::InvalidShaderId(ref err)    => err.description(),
             ShadertoyError::SaveShader(ref err)         => err.description(),
             ShadertoyError::UnsupportedUniform(ref err) => err.description(),
+            ShadertoyError::Io(ref err)                 => err.description(),
         }
     }
 
@@ -223,6 +226,7 @@ impl error::Error for ShadertoyError {
             ShadertoyError::InvalidShaderId(ref err)    => Some(err),
             ShadertoyError::SaveShader(ref err)         => Some(err),
             ShadertoyError::UnsupportedUniform(ref err) => Some(err),
+            ShadertoyError::Io(ref err)                 => Some(err),
         }
     }
 }
@@ -248,9 +252,9 @@ impl From<PipelineStateError<String>> for ShadertoyError {
         ShadertoyError::Pipeline(pse)
     }
 }
-impl From<hyper::error::Error> for ShadertoyError {
-    fn from(he: hyper::error::Error) -> Self {
-        ShadertoyError::DownloadShader(he)
+impl From<reqwest::Error> for ShadertoyError {
+    fn from(re: reqwest::Error) -> Self {
+        ShadertoyError::DownloadShader(re)
     }
 }
 impl From<serde_json::Error> for ShadertoyError {
