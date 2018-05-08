@@ -36,7 +36,7 @@ impl LoadShaderError {
     pub fn new(shadername: &str, error: io::Error) -> LoadShaderError {
         LoadShaderError {
             shadername: shadername.to_string(),
-            error: error,
+            error,
         }
     }
 }
@@ -117,7 +117,7 @@ impl SaveShaderError {
     pub fn new(shadername: &str, error: io::Error) -> SaveShaderError {
         SaveShaderError {
             shadername: shadername.to_string(),
-            error: error,
+            error,
         }
     }
 }
@@ -140,7 +140,7 @@ pub struct UnsupportedUniformError {
 impl UnsupportedUniformError {
     pub fn new(unsupported_uniforms: Vec<String>) -> UnsupportedUniformError {
         UnsupportedUniformError {
-            unsupported_uniforms: unsupported_uniforms,
+            unsupported_uniforms,
         }
     }
 }

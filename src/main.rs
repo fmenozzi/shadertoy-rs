@@ -1,3 +1,6 @@
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 #[macro_use] extern crate clap;
 #[macro_use] extern crate gfx;
 extern crate gfx_window_glutin;
