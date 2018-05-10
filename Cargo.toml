@@ -1,6 +1,6 @@
 [package]
 name = "shadertoy-rs"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Federico Menozzi <federicogmenozzi@gmail.com>"]
 description = "A desktop client for Shadertoy written in Rust"
 documentation = "https://github.com/fmenozzi/shadertoy-rs"
