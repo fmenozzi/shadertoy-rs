@@ -1,4 +1,4 @@
-use error::{self, ShadertoyError, SaveShaderError};
+use error::{self, SaveShaderError, InvalidShaderIdError};
 
 use serde_json::{self, Value};
 
@@ -20,7 +20,7 @@ pub fn download(id: &str) -> error::Result<(String, String)> {
 }
 
 fn return_save_shader_error<E>(name: &str, err: io::Error) -> error::Result<E> {
-    Err(ShadertoyError::SaveShader(SaveShaderError::new(name, err)))
+    Err(SaveShaderError::new(name, err).into())
 }
 
 fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
@@ -51,13 +51,13 @@ fn get_json_string(id: &str) -> error::Result<String> {
     match res.read_to_string(&mut buf) {
         Ok(_) => {
             if buf == "[]" {
-                Err(ShadertoyError::InvalidShaderId(id.into()))
+                Err(InvalidShaderIdError::new(id).into())
             } else {
                 Ok(buf)
             }
         },
         Err(err) => {
-            Err(ShadertoyError::Io(err))
+            Err(err.into())
         }
     }
 }

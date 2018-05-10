@@ -10,6 +10,8 @@ extern crate image;
 extern crate env_logger;
 extern crate serde_json;
 extern crate reqwest;
+extern crate failure;
+#[macro_use] extern crate failure_derive;
 
 mod argvalues;
 mod runner;

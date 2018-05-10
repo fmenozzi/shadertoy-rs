@@ -1,6 +1,6 @@
 use argvalues::ArgValues;
 use runner::TextureId;
-use error::{self, UNSUPPORTED_UNIFORMS, ShadertoyError, LoadShaderError};
+use error::{self, UNSUPPORTED_UNIFORMS, LoadShaderError, FindExampleShaderError, UnsupportedUniformError};
 
 use std::fs::File;
 use std::io::{self, Read};
@@ -49,7 +49,7 @@ const SUFFIX: &str = "
 ";
 
 fn return_load_shader_error<E>(shaderpath: &str, err: io::Error) -> error::Result<E> {
-    Err(ShadertoyError::LoadShader(LoadShaderError::new(shaderpath, err)))
+    Err(LoadShaderError::new(shaderpath, err).into())
 }
 
 pub fn format_shader_src(src: &str) -> Vec<u8> {
@@ -61,7 +61,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
         match example.as_ref() {
             "seascape"       => EXAMPLE_SEASCAPE_STR.to_string(),
             "elemental-ring" => EXAMPLE_ELEMENTAL_RING_STR.to_string(),
-            _                => return Err(ShadertoyError::FindExampleShader(example.as_str().into())),
+            _                => return Err(FindExampleShaderError::new(example.as_str()).into()),
         }
     } else {
         // Read fragment shader from file into String buffer
@@ -91,7 +91,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
     if unsupported_uniforms.is_empty() {
         Ok(format_shader_src(&frag_src_str))
     } else {
-        Err(ShadertoyError::UnsupportedUniform(unsupported_uniforms.into()))
+        Err(UnsupportedUniformError::new(unsupported_uniforms).into())
     }
 }
 
