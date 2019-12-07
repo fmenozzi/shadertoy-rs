@@ -40,11 +40,10 @@ fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
 fn get_json_string(id: &str) -> error::Result<String> {
     let client = Client::new();
     use reqwest::header::*;
-    let mut headers=HeaderMap::new();
-    headers.insert(REFERER,HeaderValue::from_static("https://www.shadertoy.com/"));
+    let mut headers = HeaderMap::new();
+    headers.insert(REFERER, HeaderValue::from_static("https://www.shadertoy.com/"));
     let mut res = client.post("https://www.shadertoy.com/shadertoy/")
         .headers(headers)
-//        .header(header::ContentType::form_url_encoded())
         .form(&[("s", format!("{{\"shaders\": [\"{}\"]}}", id))])
         .send()?;
 
