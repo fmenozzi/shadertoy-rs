@@ -1,22 +1,22 @@
 use argvalues::ArgValues;
+use download;
 use error;
 use loader;
-use download;
 
 use gfx;
-use glutin;
 use gfx_window_glutin;
+use glutin;
 
 use gfx::traits::FactoryExt;
 use gfx::Device;
 
-use glutin::{ElementState, MouseButton, GlContext};
+use glutin::{ElementState, GlContext, MouseButton};
 
-use notify::{Watcher, RecursiveMode, DebouncedEvent, watcher};
-use std::sync::mpsc::{channel, TryRecvError};
+use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use std::path::Path;
+use std::sync::mpsc::{channel, TryRecvError};
 
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 pub enum TextureId {
     ZERO,
@@ -54,16 +54,13 @@ gfx_defines! {
 }
 
 const SCREEN: [Vertex; 4] = [
-    Vertex{pos: [ 1.0,  1.0]}, // Top right
-    Vertex{pos: [-1.0,  1.0]}, // Top left
-    Vertex{pos: [-1.0, -1.0]}, // Bottom left
-    Vertex{pos: [ 1.0, -1.0]}, // Bottom right
+    Vertex { pos: [1.0, 1.0] },   // Top right
+    Vertex { pos: [-1.0, 1.0] },  // Top left
+    Vertex { pos: [-1.0, -1.0] }, // Bottom left
+    Vertex { pos: [1.0, -1.0] },  // Bottom right
 ];
 
-const SCREEN_INDICES: [u16; 6] = [
-    0, 1, 2,
-    0, 2, 3,
-];
+const SCREEN_INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
@@ -86,23 +83,21 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             } else {
                 loader::load_fragment_shader(av)?
             }
-        },
-        None => {
-            loader::load_fragment_shader(av)?
         }
+        None => loader::load_fragment_shader(av)?,
     };
     let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
     let (tx, rx) = channel();
-    let mut watcher = watcher(tx, Duration::from_millis(250))
-        .expect("couldn't initialise notify");
+    let mut watcher = watcher(tx, Duration::from_millis(250)).expect("couldn't initialise notify");
 
     let shader_basename = match av.shaderpath {
         None => None,
         Some(ref path) => {
             let path = Path::new(path);
 
-            watcher.watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
+            watcher
+                .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
                 .expect("couldn't register inotify watch");
 
             Some(path.file_name().unwrap())
@@ -125,9 +120,12 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
     let mut encoder = gfx::Encoder::from(factory.create_command_buffer());
 
-    let mut pso = factory.create_pipeline_simple(&vert_src_buf, &frag_src_buf, pipe::new()).unwrap();
+    let mut pso = factory
+        .create_pipeline_simple(&vert_src_buf, &frag_src_buf, pipe::new())
+        .unwrap();
 
-    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
+    let (vertex_buffer, slice) =
+        factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
     // Load textures
     let texture0 = loader::load_texture(&TextureId::ZERO, &av.texture0path, &mut factory)?;
@@ -142,7 +140,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
         i_global_time: 0.0,
         i_time: 0.0,
-        i_resolution: [width, height, width/height],
+        i_resolution: [width, height, width / height],
         i_mouse: [0.0; 4],
         i_frame: -1,
 
@@ -172,44 +170,52 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
             if let Event::WindowEvent { event, .. } = event {
                 match event {
-                    WindowEvent::Closed |
-                    WindowEvent::KeyboardInput {
-                        input: KeyboardInput {
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
-                            ..
-                        },
+                    WindowEvent::Closed
+                    | WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                ..
+                            },
                         ..
                     } => running = false,
 
                     WindowEvent::KeyboardInput {
-                        input: KeyboardInput {
-                            virtual_keycode: Some(VirtualKeyCode::F5),
-                            ..
-                        },
+                        input:
+                            KeyboardInput {
+                                virtual_keycode: Some(VirtualKeyCode::F5),
+                                ..
+                            },
                         ..
                     } => shader_modified = true,
 
                     WindowEvent::Resized(new_width, new_height) => {
-                        gfx_window_glutin::update_views(&window, &mut data.frag_color, &mut main_depth);
+                        gfx_window_glutin::update_views(
+                            &window,
+                            &mut data.frag_color,
+                            &mut main_depth,
+                        );
                         window.resize(new_width, new_height);
 
                         width = new_width as f32;
                         height = new_height as f32;
-                    },
+                    }
 
-                    WindowEvent::CursorMoved{position: (x,y), ..} => {
+                    WindowEvent::CursorMoved {
+                        position: (x, y), ..
+                    } => {
                         mx = x as f32;
                         my = height - y as f32; // Flip y-axis
-                    },
+                    }
 
-                    WindowEvent::MouseInput{state, button, ..} => {
+                    WindowEvent::MouseInput { state, button, .. } => {
                         last_mouse = current_mouse;
                         if state == ElementState::Pressed && button == MouseButton::Left {
                             current_mouse = ElementState::Pressed;
                         } else {
                             current_mouse = ElementState::Released;
                         }
-                    },
+                    }
 
                     _ => (),
                 }
@@ -217,33 +223,41 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         });
 
         // notify handling
-        shader_modified = shader_modified | {
-            let mut have_events = false;
-            let basename = shader_basename.unwrap();
+        shader_modified = shader_modified
+            | match shader_basename {
+                None => false,
+                Some(_) => {
+                    let mut have_events = false;
+                    let basename = shader_basename.unwrap();
 
-            loop {
-                match rx.try_recv() {
-                    Err(TryRecvError::Empty) => break,
+                    loop {
+                        match rx.try_recv() {
+                            Err(TryRecvError::Empty) => break,
 
-                    // we handle both create and write here because some text editors write
-                    // the modified file to a tmpfile then move it 
-                    Ok(DebouncedEvent::Create(ref path)) | Ok(DebouncedEvent::Write(ref path))
-                        | Ok(DebouncedEvent::Rename(_, ref path))
-                        if path.ends_with(basename) => have_events = true,
+                            // we handle both create and write here because some text editors write
+                            // the modified file to a tmpfile then move it
+                            Ok(DebouncedEvent::Create(ref path))
+                            | Ok(DebouncedEvent::Write(ref path))
+                            | Ok(DebouncedEvent::Rename(_, ref path))
+                                if path.ends_with(basename) =>
+                            {
+                                have_events = true
+                            }
 
-                    Ok(_ev) => {
-                        // println!(" >> unhandled notify event: {:?}", _ev);
-                    },
+                            Ok(_ev) => {
+                                // println!(" >> unhandled notify event: {:?}", _ev);
+                            }
 
-                    Err(TryRecvError::Disconnected) => {
-                        println!(" !! watch disconnected");
-                        break;
+                            Err(TryRecvError::Disconnected) => {
+                                println!(" !! watch disconnected");
+                                break;
+                            }
+                        }
                     }
-                }
-            }
 
-            have_events
-        };
+                    have_events
+                }
+            };
 
         // this is a while loop so we can "break;" out of it prematurely
         // in the event that we can't recompile the shader, this means that the
@@ -259,8 +273,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             let frag_src_buf = frag_src_res.as_slice();
 
             // Recreate pipeline
-            let pso_res = factory
-                .create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
+            let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
 
             pso = match pso_res {
                 Ok(pso) => pso,
@@ -273,7 +286,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             // Reset uniforms
             data.i_global_time = 0.0;
             data.i_time = 0.0;
-            data.i_resolution = [width, height, width/height];
+            data.i_resolution = [width, height, width / height];
             data.i_mouse = [0.0; 4];
             data.i_frame = -1;
 
@@ -298,13 +311,13 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
 
         // Elapsed time
         let elapsed = start_time.elapsed();
-        let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_nanos()/1_000_000);
+        let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_nanos() / 1_000_000);
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
         data.i_time = elapsed_sec;
 
         // Resolution
-        data.i_resolution = [width, height, width/height];
+        data.i_resolution = [width, height, width / height];
 
         // Frame
         data.i_frame += 1;

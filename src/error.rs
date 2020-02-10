@@ -210,7 +210,7 @@ impl error::Error for ShadertoyError {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             ShadertoyError::Parse(ref err)              => Some(err),
             ShadertoyError::Image(ref err)              => Some(err),
