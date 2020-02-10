@@ -1,11 +1,8 @@
-use error::{self, ShadertoyError, SaveShaderError};
-
-use hyper::Client;
-use hyper::header::{Referer, ContentType};
-
-use url::form_urlencoded;
+use error::{self, SaveShaderError, InvalidShaderIdError};
 
 use serde_json::{self, Value};
+
+use reqwest::{Client};
 
 use std::io::{self, Read, Write};
 use std::fs::File;
@@ -23,7 +20,7 @@ pub fn download(id: &str) -> error::Result<(String, String)> {
 }
 
 fn return_save_shader_error<E>(name: &str, err: io::Error) -> error::Result<E> {
-    Err(ShadertoyError::SaveShader(SaveShaderError::new(name, err)))
+    Err(SaveShaderError::new(name, err).into())
 }
 
 fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
@@ -42,15 +39,12 @@ fn get_shader_name_and_code(mut id: &str) -> error::Result<(String, String)> {
 
 fn get_json_string(id: &str) -> error::Result<String> {
     let client = Client::new();
-
-    let body = form_urlencoded::Serializer::new(String::new())
-        .extend_pairs(vec![("s", format!("{{\"shaders\": [\"{}\"]}}", id))])
-        .finish();
-
+    use reqwest::header::*;
+    let mut headers = HeaderMap::new();
+    headers.insert(REFERER, HeaderValue::from_static("https://www.shadertoy.com/"));
     let mut res = client.post("https://www.shadertoy.com/shadertoy/")
-        .header(Referer("https://www.shadertoy.com/".to_string()))
-        .header(ContentType("application/x-www-form-urlencoded".parse().unwrap()))
-        .body(&body)
+        .headers(headers)
+        .form(&[("s", format!("{{\"shaders\": [\"{}\"]}}", id))])
         .send()?;
 
     let mut buf = String::new();
@@ -58,13 +52,13 @@ fn get_json_string(id: &str) -> error::Result<String> {
     match res.read_to_string(&mut buf) {
         Ok(_) => {
             if buf == "[]" {
-                Err(ShadertoyError::InvalidShaderId(id.into()))
+                Err(InvalidShaderIdError::new(id).into())
             } else {
                 Ok(buf)
             }
         },
         Err(err) => {
-            Err(ShadertoyError::DownloadShader(err.into()))
+            Err(err.into())
         }
     }
 }

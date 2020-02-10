@@ -58,16 +58,16 @@ impl ArgValues {
         };
 
         Ok(ArgValues {
-            width: width,
-            height: height,
-            shaderpath: shaderpath,
-            texture0path: texture0path,
-            texture1path: texture1path,
-            texture2path: texture2path,
-            texture3path: texture3path,
-            examplename: examplename,
-            getid: getid,
-            andrun: andrun,
+            width,
+            height,
+            shaderpath,
+            texture0path,
+            texture1path,
+            texture2path,
+            texture3path,
+            examplename,
+            getid,
+            andrun,
         })
     }
 }

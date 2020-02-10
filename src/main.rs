@@ -1,3 +1,6 @@
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 #[macro_use] extern crate clap;
 #[macro_use] extern crate gfx;
 extern crate gfx_window_glutin;
@@ -5,10 +8,11 @@ extern crate glutin;
 extern crate image;
 #[macro_use] extern crate log;
 extern crate env_logger;
-extern crate hyper;
-extern crate url;
 extern crate serde_json;
 extern crate notify;
+extern crate reqwest;
+extern crate failure;
+#[macro_use] extern crate failure_derive;
 
 mod argvalues;
 mod runner;

@@ -1,6 +1,6 @@
 [package]
 name = "shadertoy-rs"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Federico Menozzi <federicogmenozzi@gmail.com>"]
 description = "A desktop client for Shadertoy written in Rust"
 documentation = "https://github.com/fmenozzi/shadertoy-rs"
@@ -19,10 +19,12 @@ clap = { version = "2.23.2", features = ["yaml"] }
 image = "0.13"
 log = "0.3"
 env_logger = "0.3"
-hyper = "0.10"
-url = "1.4"
 serde_json = "1.0"
 notify = "4.0.3"
+reqwest = "~0.9"
+clippy = { version = "0.*", optional = true }
+failure = "0.1.1"
+failure_derive = "0.1.1"
 
 [[bin]]
 path = "src/main.rs"
