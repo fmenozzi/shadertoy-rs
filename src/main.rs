@@ -9,6 +9,7 @@ extern crate image;
 #[macro_use] extern crate log;
 extern crate env_logger;
 extern crate serde_json;
+extern crate notify;
 extern crate reqwest;
 extern crate failure;
 #[macro_use] extern crate failure_derive;

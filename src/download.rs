@@ -2,7 +2,7 @@ use error::{self, SaveShaderError, InvalidShaderIdError};
 
 use serde_json::{self, Value};
 
-use reqwest::{Client, header};
+use reqwest::{Client};
 
 use std::io::{self, Read, Write};
 use std::fs::File;
