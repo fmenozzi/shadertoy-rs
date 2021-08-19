@@ -67,7 +67,7 @@ const SCREEN_INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
 
 const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 
-pub fn run(av: &ArgValues) -> error::Result<()> {
+pub fn run(av: ArgValues) -> error::Result<()> {
     let (mut width, mut height) = (av.width, av.height);
 
     // Load vertex and fragment shaders into byte buffers
@@ -98,15 +98,16 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         av.shaderpath.clone().unwrap()
       }
     };
+    let shader_basename_exists: bool;
     let shader_basename = 
     if avsp != "" {
+      shader_basename_exists = true;
       let path = Path::new(&avsp);
       watcher
           .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
           .expect("couldn't register inotify watch");
-      Some(path.clone().file_name().unwrap())
-    } else {None};
-
+      path.clone().file_name().unwrap().to_os_string()
+    } else {shader_basename_exists= false;std::ffi::OsString::new()};
     let event_loop = EventLoop::new();
     let window_config = WindowBuilder::new()
         .with_title("shadertoy-rs")
@@ -218,11 +219,11 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         }
         // notify handling
         shader_modified = shader_modified
-            | match shader_basename {
-                None => false,
-                Some(_) => {
+            | match shader_basename_exists {
+                false => false,
+                true => {
                     let mut have_events = false;
-                    let basename = shader_basename.unwrap();
+                    let basename = &shader_basename;
 
                     loop {
                         match rx.try_recv() {
@@ -233,7 +234,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
                             Ok(DebouncedEvent::Create(ref path))
                             | Ok(DebouncedEvent::Write(ref path))
                             | Ok(DebouncedEvent::Rename(_, ref path))
-                                if path.ends_with(basename) =>
+                                if path.ends_with(basename.as_os_str()) =>
                             {
                                 have_events = true
                             }
