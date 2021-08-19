@@ -122,7 +122,6 @@ where
             TextureId::THREE => Some(DEFAULT_TEXTURE3_BUF),
         }
     };
-
     let img = if let Some(default_buf) = default_buf {
         image::load_from_memory(default_buf)?.flipv().to_rgba()
     } else {
@@ -133,6 +132,5 @@ where
     let kind = gfx::texture::Kind::D2(w as u16, h as u16, gfx::texture::AaMode::Single);
     let (_, view) =
         factory.create_texture_immutable_u8::<Rgba8>(kind, Mipmap::Allocated, &[&img])?;
-
     Ok(view)
 }

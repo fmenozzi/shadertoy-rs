@@ -92,22 +92,15 @@ pub fn run(av: ArgValues) -> error::Result<()> {
 
     let (tx, rx) = channel();
     let mut watcher = watcher(tx, Duration::from_millis(250)).expect("couldn't initialise notify");
-    let avsp = match av.shaderpath {
-      None => String::new(),
-      Some(_) => {
-        av.shaderpath.clone().unwrap()
-      }
-    };
-    let shader_basename_exists: bool;
-    let shader_basename = 
-    if avsp != "" {
-      shader_basename_exists = true;
-      let path = Path::new(&avsp);
-      watcher
-          .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
-          .expect("couldn't register inotify watch");
-      path.clone().file_name().unwrap().to_os_string()
-    } else {shader_basename_exists= false;std::ffi::OsString::new()};
+
+    let shader_basename = av.shaderpath.clone().and_then(|path| {
+        let path = Path::new(&path);
+        watcher
+            .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
+            .expect("couldn't register inotify watch");
+        Some(path.clone().file_name().unwrap().to_os_string())
+    });
+
     let event_loop = EventLoop::new();
     let window_config = WindowBuilder::new()
         .with_title("shadertoy-rs")
@@ -162,8 +155,6 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let mut xyzw = [0.0; 4];
 
     let mut start_time = Instant::now();
-    let mut running = true;
-
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         let mut shader_modified = false;
@@ -178,7 +169,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                             ..
                         },
                     ..
-                } => running = false,
+                } => *control_flow = ControlFlow::Exit,
 
                 WindowEvent::KeyboardInput {
                     input:
@@ -219,7 +210,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
         }
         // notify handling
         shader_modified = shader_modified
-            | match shader_basename_exists {
+            | match shader_basename.is_some() {
                 false => false,
                 true => {
                     let mut have_events = false;
@@ -234,7 +225,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                             Ok(DebouncedEvent::Create(ref path))
                             | Ok(DebouncedEvent::Write(ref path))
                             | Ok(DebouncedEvent::Rename(_, ref path))
-                                if path.ends_with(basename.as_os_str()) =>
+                                if path.ends_with(basename.as_ref().unwrap().as_os_str()) =>
                             {
                                 have_events = true
                             }
