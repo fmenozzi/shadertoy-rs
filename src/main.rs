@@ -1,24 +1,29 @@
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
-#[macro_use] extern crate clap;
-#[macro_use] extern crate gfx;
+#[macro_use]
+extern crate clap;
+#[macro_use]
+extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 extern crate image;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate env_logger;
-extern crate serde_json;
+extern crate failure;
 extern crate notify;
 extern crate reqwest;
-extern crate failure;
-#[macro_use] extern crate failure_derive;
+extern crate serde_json;
+#[macro_use]
+extern crate failure_derive;
+extern crate old_school_gfx_glutin_ext;
 
 mod argvalues;
-mod runner;
-mod loader;
-mod error;
 mod download;
+mod error;
+mod loader;
+mod runner;
 
 use argvalues::ArgValues;
 

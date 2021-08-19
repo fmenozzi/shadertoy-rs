@@ -1,16 +1,19 @@
 use argvalues::ArgValues;
 use download;
 use error;
+use gfx;
 use loader;
 
-use gfx;
-use gfx_window_glutin;
-use glutin;
+use old_school_gfx_glutin_ext::*;
 
-use gfx::traits::FactoryExt;
-use gfx::Device;
+use gfx::{traits::FactoryExt, Device};
+use glutin::{
+    event::{Event, KeyboardInput, VirtualKeyCode, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
+};
 
-use glutin::{ElementState, GlContext, MouseButton};
+use glutin::event::{ElementState, MouseButton};
 
 use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use std::path::Path;
@@ -81,42 +84,40 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             if av.andrun {
                 loader::format_shader_src(&shadercode)
             } else {
-                loader::load_fragment_shader(av)?
+                loader::load_fragment_shader(&av)?
             }
         }
-        None => loader::load_fragment_shader(av)?,
+        None => loader::load_fragment_shader(&av)?,
     };
-    let (vert_src_buf, frag_src_buf) = (vert_src_buf.as_slice(), frag_src_buf.as_slice());
 
     let (tx, rx) = channel();
     let mut watcher = watcher(tx, Duration::from_millis(250)).expect("couldn't initialise notify");
-
-    let shader_basename = match av.shaderpath {
-        None => None,
-        Some(ref path) => {
-            let path = Path::new(path);
-
-            watcher
-                .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
-                .expect("couldn't register inotify watch");
-
-            Some(path.file_name().unwrap())
-        }
+    let avsp = match av.shaderpath {
+      None => String::new(),
+      Some(_) => {
+        av.shaderpath.clone().unwrap()
+      }
     };
+    let shader_basename = 
+    if avsp != "" {
+      let path = Path::new(&avsp);
+      watcher
+          .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
+          .expect("couldn't register inotify watch");
+      Some(path.clone().file_name().unwrap())
+    } else {None};
 
-    let mut events_loop = glutin::EventsLoop::new();
-    let window_config = glutin::WindowBuilder::new()
+    let event_loop = EventLoop::new();
+    let window_config = WindowBuilder::new()
         .with_title("shadertoy-rs")
-        .with_dimensions(width as u32, height as u32);
-
-    let (api, version) = (glutin::Api::OpenGl, (3, 2));
-
-    let context = glutin::ContextBuilder::new()
-        .with_gl(glutin::GlRequest::Specific(api, version))
-        .with_vsync(true);
+        .with_inner_size(glutin::dpi::PhysicalSize::new(width, height));
 
     let (window, mut device, mut factory, main_color, mut main_depth) =
-        gfx_window_glutin::init::<ColorFormat, DepthFormat>(window_config, context, &events_loop);
+        glutin::ContextBuilder::new()
+            .with_gfx_color_depth::<ColorFormat, DepthFormat>()
+            .build_windowed(window_config, &event_loop)
+            .unwrap()
+            .init_gfx::<ColorFormat, DepthFormat>();
 
     let mut encoder = gfx::Encoder::from(factory.create_command_buffer());
 
@@ -162,66 +163,59 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     let mut start_time = Instant::now();
     let mut running = true;
 
-    while running {
+    event_loop.run(move |event, encoder, control_flow| {
+        *control_flow = ControlFlow::Poll;
         let mut shader_modified = false;
 
-        events_loop.poll_events(|event| {
-            use glutin::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+        if let Event::WindowEvent { event, .. } = event {
+            match event {
+                WindowEvent::CloseRequested
+                | WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        },
+                    ..
+                } => running = false,
 
-            if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::Closed
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            },
-                        ..
-                    } => running = false,
+                WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::F5),
+                            ..
+                        },
+                    ..
+                } => shader_modified = true,
 
-                    WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                virtual_keycode: Some(VirtualKeyCode::F5),
-                                ..
-                            },
-                        ..
-                    } => shader_modified = true,
+                WindowEvent::Resized(size) => {
+                    window.update_gfx(&mut data.frag_color, &mut main_depth);
+                    window.resize(size);
 
-                    WindowEvent::Resized(new_width, new_height) => {
-                        gfx_window_glutin::update_views(
-                            &window,
-                            &mut data.frag_color,
-                            &mut main_depth,
-                        );
-                        window.resize(new_width, new_height);
-
-                        width = new_width as f32;
-                        height = new_height as f32;
-                    }
-
-                    WindowEvent::CursorMoved {
-                        position: (x, y), ..
-                    } => {
-                        mx = x as f32;
-                        my = height - y as f32; // Flip y-axis
-                    }
-
-                    WindowEvent::MouseInput { state, button, .. } => {
-                        last_mouse = current_mouse;
-                        if state == ElementState::Pressed && button == MouseButton::Left {
-                            current_mouse = ElementState::Pressed;
-                        } else {
-                            current_mouse = ElementState::Released;
-                        }
-                    }
-
-                    _ => (),
+                    width = size.width as f32;
+                    height = size.height as f32;
                 }
-            }
-        });
 
+                WindowEvent::CursorMoved {
+                    position: cursor_position,
+                    ..
+                } => {
+                    mx = cursor_position.x as f32;
+                    my = height - cursor_position.y as f32; // Flip y-axis
+                }
+
+                WindowEvent::MouseInput { state, button, .. } => {
+                    last_mouse = current_mouse;
+                    if state == ElementState::Pressed && button == MouseButton::Left {
+                        current_mouse = ElementState::Pressed;
+                    } else {
+                        current_mouse = ElementState::Released;
+                    }
+                }
+
+                _ => (),
+            }
+        }
         // notify handling
         shader_modified = shader_modified
             | match shader_basename {
@@ -264,7 +258,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         // old shader just continues running, and then we dump the error to stdout.
         while shader_modified {
             // Reload fragment shader into byte buffer
-            let frag_src_res = loader::load_fragment_shader(av);
+            let frag_src_res = loader::load_fragment_shader(&av);
             if frag_src_res.is_err() {
                 println!("failed to load fragment shader");
                 break;
@@ -273,7 +267,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
             let frag_src_buf = frag_src_res.as_slice();
 
             // Recreate pipeline
-            let pso_res = factory.create_pipeline_simple(vert_src_buf, frag_src_buf, pipe::new());
+            let pso_res = factory.create_pipeline_simple(&vert_src_buf, &frag_src_buf, pipe::new());
 
             pso = match pso_res {
                 Ok(pso) => pso,
@@ -328,7 +322,5 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
         device.cleanup();
-    }
-
-    Ok(())
+    });
 }
