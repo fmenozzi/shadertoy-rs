@@ -163,7 +163,7 @@ pub fn run(av: &ArgValues) -> error::Result<()> {
     let mut start_time = Instant::now();
     let mut running = true;
 
-    event_loop.run(move |event, encoder, control_flow| {
+    event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         let mut shader_modified = false;
 
