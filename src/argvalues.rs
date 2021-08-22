@@ -52,7 +52,10 @@ impl ArgValues {
 
         // Check to see if they want to download a shader (and then run it)
         let (getid, andrun) = if let Some(getmatches) = matches.subcommand_matches("get") {
-            (getmatches.value_of("id").map(&str_to_string), getmatches.is_present("run"))
+            (
+                getmatches.value_of("id").map(&str_to_string),
+                getmatches.is_present("run"),
+            )
         } else {
             (None, false)
         };

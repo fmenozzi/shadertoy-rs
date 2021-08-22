@@ -34,7 +34,7 @@ impl LoadShaderError {
 #[derive(Fail, Debug)]
 #[fail(display = "Failed to find example shader {}", example)]
 pub struct FindExampleShaderError {
-    example: String
+    example: String,
 }
 impl FindExampleShaderError {
     pub fn new(example: &str) -> FindExampleShaderError {
@@ -48,13 +48,11 @@ impl FindExampleShaderError {
 #[derive(Fail, Debug)]
 #[fail(display = "Invalid shader ID: {}", id)]
 pub struct InvalidShaderIdError {
-    id: String
+    id: String,
 }
 impl InvalidShaderIdError {
     pub fn new(id: &str) -> InvalidShaderIdError {
-        InvalidShaderIdError {
-            id: id.to_string()
-        }
+        InvalidShaderIdError { id: id.to_string() }
     }
 }
 
@@ -76,7 +74,10 @@ impl SaveShaderError {
 
 // Custom error for attempting to run a shader with unsupported uniforms
 #[derive(Fail, Debug)]
-#[fail(display = "The following uniforms are not supported: {:?}", unsupported_uniforms)]
+#[fail(
+    display = "The following uniforms are not supported: {:?}",
+    unsupported_uniforms
+)]
 pub struct UnsupportedUniformError {
     unsupported_uniforms: Vec<String>,
 }
