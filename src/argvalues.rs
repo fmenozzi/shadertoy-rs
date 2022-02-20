@@ -1,4 +1,5 @@
 use error;
+use gfx::texture::WrapMode;
 
 use clap::App;
 
@@ -14,6 +15,12 @@ pub struct ArgValues {
     pub texture1path: Option<String>,
     pub texture2path: Option<String>,
     pub texture3path: Option<String>,
+
+    // Texture wrapping
+    pub wrap0: Option<WrapMode>,
+    pub wrap1: Option<WrapMode>,
+    pub wrap2: Option<WrapMode>,
+    pub wrap3: Option<WrapMode>,
 
     // Some(name) if running an example
     pub examplename: Option<String>,
@@ -37,6 +44,17 @@ impl ArgValues {
         // Closure for converting &str to String
         let str_to_string = |s: &str| s.to_string();
 
+        // Match &str to WrapMode
+        let str_to_wrapmode = |s: &str| {
+            match s {
+                "clamp" => WrapMode::Clamp,
+                "tile" => WrapMode::Tile,
+                "mirror" => WrapMode::Mirror,
+                "border" => WrapMode::Border,
+                _ => WrapMode::Clamp,
+            }
+        };
+
         // Window dimensions
         let width = matches.value_of("width").unwrap().parse()?;
         let height = matches.value_of("height").unwrap().parse()?;
@@ -52,6 +70,12 @@ impl ArgValues {
         let texture1path = matches.value_of("texture1").map(&str_to_string);
         let texture2path = matches.value_of("texture2").map(&str_to_string);
         let texture3path = matches.value_of("texture3").map(&str_to_string);
+
+        // Texture wrapping
+        let wrap0 = matches.value_of("wrap0").map(&str_to_wrapmode);
+        let wrap1 = matches.value_of("wrap1").map(&str_to_wrapmode);
+        let wrap2 = matches.value_of("wrap2").map(&str_to_wrapmode);
+        let wrap3 = matches.value_of("wrap3").map(&str_to_wrapmode);
 
         // Window title
         let title = matches.value_of("title").map(&str_to_string);
@@ -74,6 +98,10 @@ impl ArgValues {
             texture1path,
             texture2path,
             texture3path,
+            wrap0,
+            wrap1,
+            wrap2,
+            wrap3,
             examplename,
             getid,
             andrun,

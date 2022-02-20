@@ -61,9 +61,17 @@ OPTIONS:
         --texture3 <texture3>    Path to 2D RGBA texture for iChannel3
     -W, --width <width>          Sets window width [default: 600]
     -t, --title <title>          Sets the window title
+        --wrap0 <wrap0>          Wrap mode for iChannel0 [default: clamp]
+                                 [possible values: clamp, tile, mirror, border]
+        --wrap1 <wrap1>          Wrap mode for iChannel1 [default: clamp]
+                                 [possible values: clamp, tile, mirror, border]
+        --wrap2 <wrap2>          Wrap mode for iChannel2 [default: clamp]
+                                 [possible values: clamp, tile, mirror, border]
+        --wrap3 <wrap3>          Wrap mode for iChannel3 [default: clamp]
+                                 [possible values: clamp, tile, mirror, border]
 
 ARGS:
-    <shader>    Path to fragment shader [default: shaders/default.frag]
+    <shader>    Path to fragment shader
 
 SUBCOMMANDS:
     get     Download shaders from shadertoy.com
