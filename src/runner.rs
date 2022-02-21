@@ -102,8 +102,25 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     });
 
     let event_loop = EventLoop::new();
+
+    let shader_name = av
+        .getid
+        .as_ref()
+        .or(av.shaderpath.as_ref())
+        .or(av.examplename.as_ref());
+    let shader_title = shader_name.map(|name| format!("{} - shadertoy-rs", name));
+    let default_title = "shadertoy-rs".to_string();
+
+    let window_title = if av.title.is_some() {
+        av.title.as_ref()
+    } else if shader_title.is_some() {
+        shader_title.as_ref()
+    } else {
+        Some(&default_title)
+    };
+
     let window_config = WindowBuilder::new()
-        .with_title("shadertoy-rs")
+        .with_title(window_title.unwrap())
         .with_inner_size(glutin::dpi::PhysicalSize::new(width, height));
 
     let (window, mut device, mut factory, main_color, mut main_depth) =

@@ -60,3 +60,8 @@ args:
         takes_value: true
         index: 1
         help: Path to fragment shader
+    - title:
+        long: title
+        short: t
+        takes_value: true
+        help: Sets the window title
