@@ -69,6 +69,16 @@ OPTIONS:
                                  [possible values: clamp, tile, mirror, border]
         --wrap3 <wrap3>          Wrap mode for iChannel3 [default: clamp]
                                  [possible values: clamp, tile, mirror, border]
+        --filter0 <filter0>      Filtering for iChannel0 [default: mipmap]
+                                 [possible values: scale, mipmap, bilinear, trilinear, anisotropic]
+        --filter1 <filter1>      Filtering for iChannel1 [default: mipmap]
+                                 [possible values: scale, mipmap, bilinear, trilinear, anisotropic]
+        --filter2 <filter2>      Filtering for iChannel2 [default: mipmap]
+                                 [possible values: scale, mipmap, bilinear, trilinear, anisotropic]
+        --filter3 <filter3>      Filtering for iChannel3 [default: mipmap]
+                                 [possible values: scale, mipmap, bilinear, trilinear, anisotropic]
+        --anisotropic_max <max>  Max steepness for anisotropic filtering (1-16) [default: 1]
+
 
 ARGS:
     <shader>    Path to fragment shader
