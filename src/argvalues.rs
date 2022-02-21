@@ -65,7 +65,7 @@ impl ArgValues {
         let str_to_wrapmode = |s: &str| {
             match s {
                 "clamp" => WrapMode::Clamp,
-                "tile" => WrapMode::Tile,
+                "repeat" => WrapMode::Tile,
                 "mirror" => WrapMode::Mirror,
                 "border" => WrapMode::Border,
                 _ => WrapMode::Clamp,
