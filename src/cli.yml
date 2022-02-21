@@ -49,6 +49,30 @@ args:
         long: texture3
         takes_value: true
         help: Path to 2D RGBA texture for iChannel3
+    - wrap0:
+        long: wrap0
+        takes_value: true
+        default_value: "clamp"
+        possible_values: ["clamp", "tile", "mirror", "border"]
+        help: Wrap mode for iChannel0
+    - wrap1:
+        long: wrap1
+        takes_value: true
+        default_value: "clamp"
+        possible_values: ["clamp", "tile", "mirror", "border"]
+        help: Wrap mode for iChannel1
+    - wrap2:
+        long: wrap2
+        takes_value: true
+        default_value: "clamp"
+        possible_values: ["clamp", "tile", "mirror", "border"]
+        help: Wrap mode for iChannel2
+    - wrap3:
+        long: wrap3
+        takes_value: true
+        default_value: "clamp"
+        possible_values: ["clamp", "tile", "mirror", "border"]
+        help: Wrap mode for iChannel3
     - example:
         short: e
         long: example
