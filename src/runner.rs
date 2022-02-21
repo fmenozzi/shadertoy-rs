@@ -3,6 +3,7 @@ use download;
 use error;
 use gfx;
 use gfx::texture;
+use gfx::texture::FilterMethod;
 use gfx::Factory;
 use loader;
 
@@ -147,6 +148,18 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let texture2 = loader::load_texture(&TextureId::TWO, &av.texture2path, &mut factory)?;
     let texture3 = loader::load_texture(&TextureId::THREE, &av.texture3path, &mut factory)?;
 
+    let needs_mipmap = |mode: Option<FilterMethod>| match mode.unwrap() {
+        FilterMethod::Scale => false,
+        FilterMethod::Bilinear => false,
+        _ => true
+    };
+
+    // generate mipmaps if they're needed
+    if needs_mipmap(av.filter0) {encoder.generate_mipmap(&texture0)};
+    if needs_mipmap(av.filter1) {encoder.generate_mipmap(&texture1)};
+    if needs_mipmap(av.filter2) {encoder.generate_mipmap(&texture2)};
+    if needs_mipmap(av.filter3) {encoder.generate_mipmap(&texture3)};
+
     let mut data = pipe::Data {
         vbuf: vertex_buffer,
 
@@ -159,28 +172,28 @@ pub fn run(av: ArgValues) -> error::Result<()> {
         i_channel0: (
             texture0,
             factory.create_sampler(texture::SamplerInfo::new(
-                texture::FilterMethod::Bilinear,
+                av.filter0.unwrap(),
                 av.wrap0.unwrap(),
             )),
         ),
         i_channel1: (
             texture1,
             factory.create_sampler(texture::SamplerInfo::new(
-                texture::FilterMethod::Bilinear,
+                av.filter1.unwrap(),
                 av.wrap1.unwrap(),
             )),
         ),
         i_channel2: (
             texture2,
             factory.create_sampler(texture::SamplerInfo::new(
-                texture::FilterMethod::Bilinear,
+                av.filter2.unwrap(),
                 av.wrap2.unwrap(),
             )),
         ),
         i_channel3: (
             texture3,
             factory.create_sampler(texture::SamplerInfo::new(
-                texture::FilterMethod::Bilinear,
+                av.filter3.unwrap(),
                 av.wrap3.unwrap(),
             )),
         ),

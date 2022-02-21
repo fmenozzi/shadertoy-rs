@@ -73,6 +73,35 @@ args:
         default_value: "clamp"
         possible_values: ["clamp", "tile", "mirror", "border"]
         help: Wrap mode for iChannel3
+    - filter0:
+        long: filter0
+        takes_value: true
+        default_value: "mipmap"
+        possible_values: ["scale", "mipmap", "bilinear", "trilinear", "anisotropic"]
+        help: Filtering for iChannel0
+    - filter1:
+        long: filter1
+        takes_value: true
+        default_value: "mipmap"
+        possible_values: ["scale", "mipmap", "bilinear", "trilinear", "anisotropic"]
+        help: Filtering for iChannel1
+    - filter2:
+        long: filter2
+        takes_value: true
+        default_value: "mipmap"
+        possible_values: ["scale", "mipmap", "bilinear", "trilinear", "anisotropic"]
+        help: Filtering for iChannel2
+    - filter3:
+        long: filter3
+        takes_value: true
+        default_value: "mipmap"
+        possible_values: ["scale", "mipmap", "bilinear", "trilinear", "anisotropic"]
+        help: Filtering for iChannel3
+    - anisotropic_max:
+        long: anisotropic_max
+        help: Max steepness for anisotropic filtering (1-16)
+        takes_value: true
+        default_value: "1"
     - example:
         short: e
         long: example

@@ -1,5 +1,5 @@
 use error;
-use gfx::texture::WrapMode;
+use gfx::texture::{WrapMode, FilterMethod};
 
 use clap::App;
 
@@ -21,6 +21,15 @@ pub struct ArgValues {
     pub wrap1: Option<WrapMode>,
     pub wrap2: Option<WrapMode>,
     pub wrap3: Option<WrapMode>,
+
+    // Filter method
+    pub filter0: Option<FilterMethod>,
+    pub filter1: Option<FilterMethod>,
+    pub filter2: Option<FilterMethod>,
+    pub filter3: Option<FilterMethod>,
+
+    // Max value for anisotropic filtering
+    pub anisotropic_max: Option<u8>,
 
     // Some(name) if running an example
     pub examplename: Option<String>,
@@ -44,6 +53,14 @@ impl ArgValues {
         // Closure for converting &str to String
         let str_to_string = |s: &str| s.to_string();
 
+        // Convert &str to integer between 1 and 16
+        fn str_to_anisotropic_max(s: &str) -> u8 {
+            match s.parse::<u8>() {
+                Ok(i) => i.clamp(1,16),
+                Err(_e) => 1,
+            }
+        }
+
         // Match &str to WrapMode
         let str_to_wrapmode = |s: &str| {
             match s {
@@ -54,6 +71,7 @@ impl ArgValues {
                 _ => WrapMode::Clamp,
             }
         };
+
 
         // Window dimensions
         let width = matches.value_of("width").unwrap().parse()?;
@@ -76,6 +94,27 @@ impl ArgValues {
         let wrap1 = matches.value_of("wrap1").map(&str_to_wrapmode);
         let wrap2 = matches.value_of("wrap2").map(&str_to_wrapmode);
         let wrap3 = matches.value_of("wrap3").map(&str_to_wrapmode);
+
+        // Anistropic filter max value
+        let anisotropic_max = matches.value_of("anisotropic_max").map(&str_to_anisotropic_max);
+
+        // Match &str to FilterMethod
+        let str_to_filtermethod = |s: &str| {
+            match s {
+                "scale" => FilterMethod::Scale,
+                "mipmap" => FilterMethod::Mipmap,
+                "bilinear" => FilterMethod::Bilinear,
+                "trilinear" => FilterMethod::Trilinear,
+                "anisotropic" => FilterMethod::Anisotropic(anisotropic_max.unwrap()),
+                _ => FilterMethod::Bilinear,
+            }
+        };
+
+        // Texture wrapping
+        let filter0 = matches.value_of("filter0").map(&str_to_filtermethod);
+        let filter1 = matches.value_of("filter1").map(&str_to_filtermethod);
+        let filter2 = matches.value_of("filter2").map(&str_to_filtermethod);
+        let filter3 = matches.value_of("filter3").map(&str_to_filtermethod);
 
         // Window title
         let title = matches.value_of("title").map(&str_to_string);
@@ -102,6 +141,11 @@ impl ArgValues {
             wrap1,
             wrap2,
             wrap3,
+            filter0,
+            filter1,
+            filter2,
+            filter3,
+            anisotropic_max,
             examplename,
             getid,
             andrun,
