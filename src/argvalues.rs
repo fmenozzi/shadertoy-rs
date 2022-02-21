@@ -21,6 +21,9 @@ pub struct ArgValues {
     // Some(id) if downloading a shader
     pub getid: Option<String>,
 
+    // a custom window title
+    pub title: Option<String>,
+
     // true if also running downloaded shader
     pub andrun: bool,
 }
@@ -50,6 +53,9 @@ impl ArgValues {
         let texture2path = matches.value_of("texture2").map(&str_to_string);
         let texture3path = matches.value_of("texture3").map(&str_to_string);
 
+        // Window title
+        let title = matches.value_of("title").map(&str_to_string);
+
         // Check to see if they want to download a shader (and then run it)
         let (getid, andrun) = if let Some(getmatches) = matches.subcommand_matches("get") {
             (
@@ -71,6 +77,7 @@ impl ArgValues {
             examplename,
             getid,
             andrun,
+            title,
         })
     }
 }

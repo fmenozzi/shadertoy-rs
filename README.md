@@ -60,6 +60,7 @@ OPTIONS:
         --texture2 <texture2>    Path to 2D RGBA texture for iChannel2
         --texture3 <texture3>    Path to 2D RGBA texture for iChannel3
     -W, --width <width>          Sets window width [default: 600]
+    -t, --title <title>          Sets the window title
 
 ARGS:
     <shader>    Path to fragment shader [default: shaders/default.frag]
