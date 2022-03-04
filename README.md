@@ -41,7 +41,7 @@ Add the `-r/--run` flag to automatically run the downloaded shader
 For now, the CLI looks like this:
 
 ```
-shadertoy 0.4.4
+shadertoy 0.6.0
 Federico Menozzi <federicogmenozzi@gmail.com>
 Desktop client for Shadertoy
 
