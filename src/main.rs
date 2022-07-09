@@ -30,7 +30,7 @@ use argvalues::ArgValues;
 fn main() {
     env_logger::init().expect("Unable to initialize logger");
 
-    if let Err(e) = ArgValues::from_cli().and_then(|av| runner::run(av)) {
+    if let Err(e) = ArgValues::from_cli().and_then(runner::run) {
         error!("{}", e);
     }
 }

@@ -12,19 +12,18 @@ use gfx;
 use image;
 
 // Default shaders
-pub static DEFAULT_VERT_SRC_BUF: &'static [u8] = include_bytes!("../shaders/default.vert");
-pub static DEFAULT_FRAG_SRC_STR: &'static str = include_str!("../shaders/default.frag");
+pub static DEFAULT_VERT_SRC_BUF: &[u8] = include_bytes!("../shaders/default.vert");
+pub static DEFAULT_FRAG_SRC_STR: &str = include_str!("../shaders/default.frag");
 
 // Default textures
-pub static DEFAULT_TEXTURE0_BUF: &'static [u8] = include_bytes!("../textures/01-brickwall.jpg");
-pub static DEFAULT_TEXTURE1_BUF: &'static [u8] = include_bytes!("../textures/02-landscape.jpg");
-pub static DEFAULT_TEXTURE2_BUF: &'static [u8] = include_bytes!("../textures/03-whitenoise.jpg");
-pub static DEFAULT_TEXTURE3_BUF: &'static [u8] = include_bytes!("../textures/04-woodgrain.jpg");
+pub static DEFAULT_TEXTURE0_BUF: &[u8] = include_bytes!("../textures/01-brickwall.jpg");
+pub static DEFAULT_TEXTURE1_BUF: &[u8] = include_bytes!("../textures/02-landscape.jpg");
+pub static DEFAULT_TEXTURE2_BUF: &[u8] = include_bytes!("../textures/03-whitenoise.jpg");
+pub static DEFAULT_TEXTURE3_BUF: &[u8] = include_bytes!("../textures/04-woodgrain.jpg");
 
 // Example shaders
-pub static EXAMPLE_SEASCAPE_STR: &'static str = include_str!("../examples/seascape.frag");
-pub static EXAMPLE_ELEMENTAL_RING_STR: &'static str =
-    include_str!("../examples/elemental-ring.frag");
+pub static EXAMPLE_SEASCAPE_STR: &str = include_str!("../examples/seascape.frag");
+pub static EXAMPLE_ELEMENTAL_RING_STR: &str = include_str!("../examples/elemental-ring.frag");
 
 // Fragment shader prefix
 const PREFIX: &str = "
@@ -86,7 +85,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
     let unsupported_uniforms: Vec<String> = UNSUPPORTED_UNIFORMS
         .iter()
         .map(|s| s.to_string())
-        .filter(|uu| frag_src_str.find(uu).is_some())
+        .filter(|uu| frag_src_str.contains(uu))
         .collect();
 
     if unsupported_uniforms.is_empty() {
@@ -116,10 +115,10 @@ where
         None
     } else {
         match *id {
-            TextureId::ZERO => Some(DEFAULT_TEXTURE0_BUF),
-            TextureId::ONE => Some(DEFAULT_TEXTURE1_BUF),
-            TextureId::TWO => Some(DEFAULT_TEXTURE2_BUF),
-            TextureId::THREE => Some(DEFAULT_TEXTURE3_BUF),
+            TextureId::Zero => Some(DEFAULT_TEXTURE0_BUF),
+            TextureId::One => Some(DEFAULT_TEXTURE1_BUF),
+            TextureId::Two => Some(DEFAULT_TEXTURE2_BUF),
+            TextureId::Three => Some(DEFAULT_TEXTURE3_BUF),
         }
     };
     let img = if let Some(default_buf) = default_buf {

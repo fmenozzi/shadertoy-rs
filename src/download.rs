@@ -67,7 +67,7 @@ fn get_json_string(id: &str) -> error::Result<String> {
 fn extract_from_json(json: &Value) -> error::Result<(String, String)> {
     let name = format!(
         "{}.frag",
-        json[0]["info"]["name"].as_str().unwrap().replace(" ", "_")
+        json[0]["info"]["name"].as_str().unwrap().replace(' ', "_")
     )
     .to_lowercase();
     let mut code = String::new();

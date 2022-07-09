@@ -25,10 +25,10 @@ use std::sync::mpsc::{channel, TryRecvError};
 use std::time::{Duration, Instant};
 
 pub enum TextureId {
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
+    Zero,
+    One,
+    Two,
+    Three,
 }
 
 type ColorFormat = gfx::format::Rgba8;
@@ -96,12 +96,12 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let (tx, rx) = channel();
     let mut watcher = watcher(tx, Duration::from_millis(250)).expect("couldn't initialise notify");
 
-    let shader_basename = av.shaderpath.clone().and_then(|path| {
+    let shader_basename = av.shaderpath.as_ref().map(|path| {
         let path = Path::new(&path);
         watcher
             .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
             .expect("couldn't register inotify watch");
-        Some(path.clone().file_name().unwrap().to_os_string())
+        path.file_name().unwrap().to_os_string()
     });
 
     let event_loop = EventLoop::new();
@@ -143,15 +143,13 @@ pub fn run(av: ArgValues) -> error::Result<()> {
         factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
     // Load textures
-    let texture0 = loader::load_texture(&TextureId::ZERO, &av.texture0path, &mut factory)?;
-    let texture1 = loader::load_texture(&TextureId::ONE, &av.texture1path, &mut factory)?;
-    let texture2 = loader::load_texture(&TextureId::TWO, &av.texture2path, &mut factory)?;
-    let texture3 = loader::load_texture(&TextureId::THREE, &av.texture3path, &mut factory)?;
+    let texture0 = loader::load_texture(&TextureId::Zero, &av.texture0path, &mut factory)?;
+    let texture1 = loader::load_texture(&TextureId::One, &av.texture1path, &mut factory)?;
+    let texture2 = loader::load_texture(&TextureId::Two, &av.texture2path, &mut factory)?;
+    let texture3 = loader::load_texture(&TextureId::Three, &av.texture3path, &mut factory)?;
 
-    let needs_mipmap = |mode: Option<FilterMethod>| match mode.unwrap() {
-        FilterMethod::Scale => false,
-        FilterMethod::Bilinear => false,
-        _ => true,
+    let needs_mipmap = |mode: Option<FilterMethod>| {
+        matches!(mode.unwrap(), FilterMethod::Scale | FilterMethod::Bilinear)
     };
 
     // generate mipmaps if they're needed
@@ -271,41 +269,40 @@ pub fn run(av: ArgValues) -> error::Result<()> {
             }
         }
         // notify handling
-        shader_modified = shader_modified
-            | match shader_basename.is_some() {
-                false => false,
-                true => {
-                    let mut have_events = false;
-                    let basename = &shader_basename;
+        shader_modified |= match shader_basename.is_some() {
+            false => false,
+            true => {
+                let mut have_events = false;
+                let basename = &shader_basename;
 
-                    loop {
-                        match rx.try_recv() {
-                            Err(TryRecvError::Empty) => break,
+                loop {
+                    match rx.try_recv() {
+                        Err(TryRecvError::Empty) => break,
 
-                            // we handle both create and write here because some text editors write
-                            // the modified file to a tmpfile then move it
-                            Ok(DebouncedEvent::Create(ref path))
-                            | Ok(DebouncedEvent::Write(ref path))
-                            | Ok(DebouncedEvent::Rename(_, ref path))
-                                if path.ends_with(basename.as_ref().unwrap().as_os_str()) =>
-                            {
-                                have_events = true
-                            }
+                        // we handle both create and write here because some text editors write
+                        // the modified file to a tmpfile then move it
+                        Ok(DebouncedEvent::Create(ref path))
+                        | Ok(DebouncedEvent::Write(ref path))
+                        | Ok(DebouncedEvent::Rename(_, ref path))
+                            if path.ends_with(basename.as_ref().unwrap().as_os_str()) =>
+                        {
+                            have_events = true
+                        }
 
-                            Ok(_ev) => {
-                                // println!(" >> unhandled notify event: {:?}", _ev);
-                            }
+                        Ok(_ev) => {
+                            // println!(" >> unhandled notify event: {:?}", _ev);
+                        }
 
-                            Err(TryRecvError::Disconnected) => {
-                                println!(" !! watch disconnected");
-                                break;
-                            }
+                        Err(TryRecvError::Disconnected) => {
+                            println!(" !! watch disconnected");
+                            break;
                         }
                     }
-
-                    have_events
                 }
-            };
+
+                have_events
+            }
+        };
 
         // this is a while loop so we can "break;" out of it prematurely
         // in the event that we can't recompile the shader, this means that the
@@ -321,7 +318,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
             let frag_src_buf = frag_src_res.as_slice();
 
             // Recreate pipeline
-            let pso_res = factory.create_pipeline_simple(&vert_src_buf, &frag_src_buf, pipe::new());
+            let pso_res = factory.create_pipeline_simple(&vert_src_buf, frag_src_buf, pipe::new());
 
             pso = match pso_res {
                 Ok(pso) => pso,
@@ -359,7 +356,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
 
         // Elapsed time
         let elapsed = start_time.elapsed();
-        let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_nanos() / 1_000_000);
+        let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_millis());
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
         data.i_time = elapsed_sec;

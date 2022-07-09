@@ -6,7 +6,7 @@ use std::result;
 pub type Result<T> = result::Result<T, failure::Error>;
 
 // All unsupported uniforms
-pub static UNSUPPORTED_UNIFORMS: [&'static str; 5] = [
+pub static UNSUPPORTED_UNIFORMS: [&str; 5] = [
     "iTimeDelta",
     "iChannelTime",
     "iChannelResolution",
