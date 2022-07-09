@@ -1,5 +1,5 @@
 use error;
-use gfx::texture::{WrapMode, FilterMethod};
+use gfx::texture::{FilterMethod, WrapMode};
 
 use clap::App;
 
@@ -56,22 +56,19 @@ impl ArgValues {
         // Convert &str to integer between 1 and 16
         fn str_to_anisotropic_max(s: &str) -> u8 {
             match s.parse::<u8>() {
-                Ok(i) => i.clamp(1,16),
+                Ok(i) => i.clamp(1, 16),
                 Err(_e) => 1,
             }
         }
 
         // Match &str to WrapMode
-        let str_to_wrapmode = |s: &str| {
-            match s {
-                "clamp" => WrapMode::Clamp,
-                "repeat" => WrapMode::Tile,
-                "mirror" => WrapMode::Mirror,
-                "border" => WrapMode::Border,
-                _ => WrapMode::Clamp,
-            }
+        let str_to_wrapmode = |s: &str| match s {
+            "clamp" => WrapMode::Clamp,
+            "repeat" => WrapMode::Tile,
+            "mirror" => WrapMode::Mirror,
+            "border" => WrapMode::Border,
+            _ => WrapMode::Clamp,
         };
-
 
         // Window dimensions
         let width = matches.value_of("width").unwrap().parse()?;
@@ -96,18 +93,18 @@ impl ArgValues {
         let wrap3 = matches.value_of("wrap3").map(&str_to_wrapmode);
 
         // Anistropic filter max value
-        let anisotropic_max = matches.value_of("anisotropic_max").map(&str_to_anisotropic_max);
+        let anisotropic_max = matches
+            .value_of("anisotropic_max")
+            .map(&str_to_anisotropic_max);
 
         // Match &str to FilterMethod
-        let str_to_filtermethod = |s: &str| {
-            match s {
-                "scale" => FilterMethod::Scale,
-                "mipmap" => FilterMethod::Mipmap,
-                "bilinear" => FilterMethod::Bilinear,
-                "trilinear" => FilterMethod::Trilinear,
-                "anisotropic" => FilterMethod::Anisotropic(anisotropic_max.unwrap()),
-                _ => FilterMethod::Bilinear,
-            }
+        let str_to_filtermethod = |s: &str| match s {
+            "scale" => FilterMethod::Scale,
+            "mipmap" => FilterMethod::Mipmap,
+            "bilinear" => FilterMethod::Bilinear,
+            "trilinear" => FilterMethod::Trilinear,
+            "anisotropic" => FilterMethod::Anisotropic(anisotropic_max.unwrap()),
+            _ => FilterMethod::Bilinear,
         };
 
         // Texture wrapping

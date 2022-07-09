@@ -151,14 +151,22 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let needs_mipmap = |mode: Option<FilterMethod>| match mode.unwrap() {
         FilterMethod::Scale => false,
         FilterMethod::Bilinear => false,
-        _ => true
+        _ => true,
     };
 
     // generate mipmaps if they're needed
-    if needs_mipmap(av.filter0) {encoder.generate_mipmap(&texture0)};
-    if needs_mipmap(av.filter1) {encoder.generate_mipmap(&texture1)};
-    if needs_mipmap(av.filter2) {encoder.generate_mipmap(&texture2)};
-    if needs_mipmap(av.filter3) {encoder.generate_mipmap(&texture3)};
+    if needs_mipmap(av.filter0) {
+        encoder.generate_mipmap(&texture0)
+    };
+    if needs_mipmap(av.filter1) {
+        encoder.generate_mipmap(&texture1)
+    };
+    if needs_mipmap(av.filter2) {
+        encoder.generate_mipmap(&texture2)
+    };
+    if needs_mipmap(av.filter3) {
+        encoder.generate_mipmap(&texture3)
+    };
 
     let mut data = pipe::Data {
         vbuf: vertex_buffer,
