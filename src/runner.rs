@@ -304,40 +304,35 @@ pub fn run(av: ArgValues) -> error::Result<()> {
             }
         };
 
-        // this is a while loop so we can "break;" out of it prematurely
-        // in the event that we can't recompile the shader, this means that the
-        // old shader just continues running, and then we dump the error to stdout.
-        while shader_modified {
+        // Attempt to reload the shader if it has been modified. In the event that the new version
+        // does not load/compile properly, the old version will continue running.
+        if shader_modified {
             // Reload fragment shader into byte buffer
-            let frag_src_res = loader::load_fragment_shader(&av);
-            if frag_src_res.is_err() {
-                println!("failed to load fragment shader");
-                break;
-            }
-            let frag_src_res = frag_src_res.unwrap();
-            let frag_src_buf = frag_src_res.as_slice();
+            match loader::load_fragment_shader(&av) {
+                Ok(frag_src_res) => {
+                    let frag_src_buf = frag_src_res.as_slice();
 
-            // Recreate pipeline
-            let pso_res = factory.create_pipeline_simple(&vert_src_buf, frag_src_buf, pipe::new());
+                    // Recreate pipeline
+                    match factory.create_pipeline_simple(&vert_src_buf, frag_src_buf, pipe::new()) {
+                        Ok(new_pso) => {
+                            pso = new_pso;
 
-            pso = match pso_res {
-                Ok(pso) => pso,
-                Err(e) => {
-                    println!("failed to create pipeline: {:?}", e);
-                    break;
+                            // Reset uniforms
+                            data.i_global_time = 0.0;
+                            data.i_time = 0.0;
+                            data.i_resolution = [width, height, width / height];
+                            data.i_mouse = [0.0; 4];
+                            data.i_frame = -1;
+
+                            start_time = Instant::now();
+                        }
+
+                        Err(e) => println!("Failed to create pipeline: {:?}", e),
+                    }
                 }
-            };
 
-            // Reset uniforms
-            data.i_global_time = 0.0;
-            data.i_time = 0.0;
-            data.i_resolution = [width, height, width / height];
-            data.i_mouse = [0.0; 4];
-            data.i_frame = -1;
-
-            start_time = Instant::now();
-
-            break;
+                Err(e) => println!("Failed to load fragment shader: {:?}", e),
+            }
         }
 
         // Mouse
