@@ -16,20 +16,21 @@ pub struct ArgValues {
     pub texture2path: Option<String>,
     pub texture3path: Option<String>,
 
-    // Texture wrapping
-    pub wrap0: Option<WrapMode>,
-    pub wrap1: Option<WrapMode>,
-    pub wrap2: Option<WrapMode>,
-    pub wrap3: Option<WrapMode>,
+    // Texture wrapping. Defaults to "clamp" if unspecified.
+    pub wrap0: WrapMode,
+    pub wrap1: WrapMode,
+    pub wrap2: WrapMode,
+    pub wrap3: WrapMode,
 
-    // Filter method
-    pub filter0: Option<FilterMethod>,
-    pub filter1: Option<FilterMethod>,
-    pub filter2: Option<FilterMethod>,
-    pub filter3: Option<FilterMethod>,
+    // Filter method. Defaults to "mipmap" if unspecified.
+    pub filter0: FilterMethod,
+    pub filter1: FilterMethod,
+    pub filter2: FilterMethod,
+    pub filter3: FilterMethod,
 
-    // Max value for anisotropic filtering
-    pub anisotropic_max: Option<u8>,
+    // Max value for anisotropic filtering. Defaults to 1 if unspecified. Only needed for
+    // "anisotropic" filter method.
+    pub anisotropic_max: u8,
 
     // Some(name) if running an example
     pub examplename: Option<String>,
@@ -37,10 +38,10 @@ pub struct ArgValues {
     // Some(id) if downloading a shader
     pub getid: Option<String>,
 
-    // a custom window title
+    // Some(title) if custom window title is specified.
     pub title: Option<String>,
 
-    // true if also running downloaded shader
+    // True if also running downloaded shader.
     pub andrun: bool,
 }
 
@@ -52,23 +53,6 @@ impl ArgValues {
 
         // Closure for converting &str to String
         let str_to_string = |s: &str| s.to_string();
-
-        // Convert &str to integer between 1 and 16
-        fn str_to_anisotropic_max(s: &str) -> u8 {
-            match s.parse::<u8>() {
-                Ok(i) => i.clamp(1, 16),
-                Err(_e) => 1,
-            }
-        }
-
-        // Match &str to WrapMode
-        let str_to_wrapmode = |s: &str| match s {
-            "clamp" => WrapMode::Clamp,
-            "repeat" => WrapMode::Tile,
-            "mirror" => WrapMode::Mirror,
-            "border" => WrapMode::Border,
-            _ => WrapMode::Clamp,
-        };
 
         // Window dimensions
         let width = matches.value_of("width").unwrap().parse()?;
@@ -86,32 +70,42 @@ impl ArgValues {
         let texture2path = matches.value_of("texture2").map(&str_to_string);
         let texture3path = matches.value_of("texture3").map(&str_to_string);
 
+        let get_wrap_mode = |wrap_mode: &Option<&str>| match wrap_mode.unwrap_or("clamp") {
+            "clamp" => WrapMode::Clamp,
+            "repeat" => WrapMode::Tile,
+            "mirror" => WrapMode::Mirror,
+            "border" => WrapMode::Border,
+            _ => WrapMode::Clamp,
+        };
+
         // Texture wrapping
-        let wrap0 = matches.value_of("wrap0").map(&str_to_wrapmode);
-        let wrap1 = matches.value_of("wrap1").map(&str_to_wrapmode);
-        let wrap2 = matches.value_of("wrap2").map(&str_to_wrapmode);
-        let wrap3 = matches.value_of("wrap3").map(&str_to_wrapmode);
+        let wrap0 = get_wrap_mode(&matches.value_of("wrap0"));
+        let wrap1 = get_wrap_mode(&matches.value_of("wrap1"));
+        let wrap2 = get_wrap_mode(&matches.value_of("wrap2"));
+        let wrap3 = get_wrap_mode(&matches.value_of("wrap3"));
 
         // Anistropic filter max value
         let anisotropic_max = matches
             .value_of("anisotropic_max")
-            .map(&str_to_anisotropic_max);
+            .unwrap_or("1")
+            .parse::<u8>()
+            .unwrap_or(1)
+            .clamp(1, 16);
 
-        // Match &str to FilterMethod
-        let str_to_filtermethod = |s: &str| match s {
+        let get_filter_mode = |filter_mode: &Option<&str>| match filter_mode.unwrap_or("mipmap") {
             "scale" => FilterMethod::Scale,
             "mipmap" => FilterMethod::Mipmap,
             "bilinear" => FilterMethod::Bilinear,
             "trilinear" => FilterMethod::Trilinear,
-            "anisotropic" => FilterMethod::Anisotropic(anisotropic_max.unwrap()),
-            _ => FilterMethod::Bilinear,
+            "anisotropic" => FilterMethod::Anisotropic(anisotropic_max),
+            _ => FilterMethod::Mipmap,
         };
 
         // Texture wrapping
-        let filter0 = matches.value_of("filter0").map(&str_to_filtermethod);
-        let filter1 = matches.value_of("filter1").map(&str_to_filtermethod);
-        let filter2 = matches.value_of("filter2").map(&str_to_filtermethod);
-        let filter3 = matches.value_of("filter3").map(&str_to_filtermethod);
+        let filter0 = get_filter_mode(&matches.value_of("filter0"));
+        let filter1 = get_filter_mode(&matches.value_of("filter1"));
+        let filter2 = get_filter_mode(&matches.value_of("filter2"));
+        let filter3 = get_filter_mode(&matches.value_of("filter3"));
 
         // Window title
         let title = matches.value_of("title").map(&str_to_string);

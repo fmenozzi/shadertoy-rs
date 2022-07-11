@@ -148,9 +148,8 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let texture2 = loader::load_texture(&TextureId::Two, &av.texture2path, &mut factory)?;
     let texture3 = loader::load_texture(&TextureId::Three, &av.texture3path, &mut factory)?;
 
-    let needs_mipmap = |mode: Option<FilterMethod>| {
-        mode.unwrap() != FilterMethod::Scale && mode.unwrap() != FilterMethod::Bilinear
-    };
+    let needs_mipmap =
+        |mode: FilterMethod| mode != FilterMethod::Scale && mode != FilterMethod::Bilinear;
 
     // generate mipmaps if they're needed
     if needs_mipmap(av.filter0) {
@@ -177,31 +176,19 @@ pub fn run(av: ArgValues) -> error::Result<()> {
 
         i_channel0: (
             texture0,
-            factory.create_sampler(texture::SamplerInfo::new(
-                av.filter0.unwrap(),
-                av.wrap0.unwrap(),
-            )),
+            factory.create_sampler(texture::SamplerInfo::new(av.filter0, av.wrap0)),
         ),
         i_channel1: (
             texture1,
-            factory.create_sampler(texture::SamplerInfo::new(
-                av.filter1.unwrap(),
-                av.wrap1.unwrap(),
-            )),
+            factory.create_sampler(texture::SamplerInfo::new(av.filter1, av.wrap1)),
         ),
         i_channel2: (
             texture2,
-            factory.create_sampler(texture::SamplerInfo::new(
-                av.filter2.unwrap(),
-                av.wrap2.unwrap(),
-            )),
+            factory.create_sampler(texture::SamplerInfo::new(av.filter2, av.wrap2)),
         ),
         i_channel3: (
             texture3,
-            factory.create_sampler(texture::SamplerInfo::new(
-                av.filter3.unwrap(),
-                av.wrap3.unwrap(),
-            )),
+            factory.create_sampler(texture::SamplerInfo::new(av.filter3, av.wrap3)),
         ),
 
         frag_color: main_color,
