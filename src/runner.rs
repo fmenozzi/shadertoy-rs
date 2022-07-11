@@ -149,7 +149,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let texture3 = loader::load_texture(&TextureId::Three, &av.texture3path, &mut factory)?;
 
     let needs_mipmap = |mode: Option<FilterMethod>| {
-        matches!(mode.unwrap(), FilterMethod::Scale | FilterMethod::Bilinear)
+        mode.unwrap() != FilterMethod::Scale && mode.unwrap() != FilterMethod::Bilinear
     };
 
     // generate mipmaps if they're needed
