@@ -25,8 +25,7 @@ serde_json = "1.0"
 notify = "4.0.3"
 reqwest = "~0.9"
 clippy = { version = "0.*", optional = true }
-failure = "0.1.8"
-failure_derive = "0.1.8"
+anyhow = "1.0.0"
 
 [[bin]]
 path = "src/main.rs"

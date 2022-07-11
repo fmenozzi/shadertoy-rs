@@ -1,9 +1,10 @@
-use failure;
+use anyhow;
 
+use std::error::Error;
+use std::fmt;
 use std::io;
-use std::result;
 
-pub type Result<T> = result::Result<T, failure::Error>;
+pub type Result<T> = anyhow::Result<T>;
 
 // All unsupported uniforms
 pub static UNSUPPORTED_UNIFORMS: [&str; 5] = [
@@ -15,8 +16,7 @@ pub static UNSUPPORTED_UNIFORMS: [&str; 5] = [
 ];
 
 // Custom error for failing to load shaders
-#[derive(Fail, Debug)]
-#[fail(display = "Error loading shader {}: {}", shadername, error)]
+#[derive(Debug)]
 pub struct LoadShaderError {
     shadername: String,
     error: io::Error,
@@ -29,10 +29,19 @@ impl LoadShaderError {
         }
     }
 }
+impl fmt::Display for LoadShaderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Error loading shader {}: {}",
+            self.shadername, self.error
+        )
+    }
+}
+impl Error for LoadShaderError {}
 
 // Custom error for failing to find example shaders
-#[derive(Fail, Debug)]
-#[fail(display = "Failed to find example shader {}", example)]
+#[derive(Debug)]
 pub struct FindExampleShaderError {
     example: String,
 }
@@ -43,10 +52,15 @@ impl FindExampleShaderError {
         }
     }
 }
+impl Error for FindExampleShaderError {}
+impl fmt::Display for FindExampleShaderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Failed to find example shader {}", self.example)
+    }
+}
 
 // Custom error for specifying invalid shader id
-#[derive(Fail, Debug)]
-#[fail(display = "Invalid shader ID: {}", id)]
+#[derive(Debug)]
 pub struct InvalidShaderIdError {
     id: String,
 }
@@ -55,10 +69,15 @@ impl InvalidShaderIdError {
         InvalidShaderIdError { id: id.to_string() }
     }
 }
+impl Error for InvalidShaderIdError {}
+impl fmt::Display for InvalidShaderIdError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Invalid shader ID: {}", self.id)
+    }
+}
 
 // Custom error for failing to save downloaded shader
-#[derive(Fail, Debug)]
-#[fail(display = "Error saving shader {}: {}", shadername, error)]
+#[derive(Debug)]
 pub struct SaveShaderError {
     shadername: String,
     error: io::Error,
@@ -71,13 +90,15 @@ impl SaveShaderError {
         }
     }
 }
+impl Error for SaveShaderError {}
+impl fmt::Display for SaveShaderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error saving shader {}: {}", self.shadername, self.error)
+    }
+}
 
 // Custom error for attempting to run a shader with unsupported uniforms
-#[derive(Fail, Debug)]
-#[fail(
-    display = "The following uniforms are not supported: {:?}",
-    unsupported_uniforms
-)]
+#[derive(Debug)]
 pub struct UnsupportedUniformError {
     unsupported_uniforms: Vec<String>,
 }
@@ -86,5 +107,15 @@ impl UnsupportedUniformError {
         UnsupportedUniformError {
             unsupported_uniforms,
         }
+    }
+}
+impl Error for UnsupportedUniformError {}
+impl fmt::Display for UnsupportedUniformError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "The following uniforms are not supported: {:?}",
+            self.unsupported_uniforms
+        )
     }
 }

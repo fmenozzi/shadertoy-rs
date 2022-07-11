@@ -10,14 +10,12 @@ extern crate glutin;
 extern crate image;
 #[macro_use]
 extern crate log;
+extern crate anyhow;
 extern crate env_logger;
-extern crate failure;
 extern crate notify;
+extern crate old_school_gfx_glutin_ext;
 extern crate reqwest;
 extern crate serde_json;
-#[macro_use]
-extern crate failure_derive;
-extern crate old_school_gfx_glutin_ext;
 
 mod argvalues;
 mod download;
