@@ -6,7 +6,7 @@ use std::io;
 
 pub type Result<T> = anyhow::Result<T>;
 
-// All unsupported uniforms
+// All unsupported uniforms. Attempting to use any of these in a shader will result in an error.
 pub static UNSUPPORTED_UNIFORMS: [&str; 5] = [
     "iTimeDelta",
     "iChannelTime",
@@ -15,7 +15,7 @@ pub static UNSUPPORTED_UNIFORMS: [&str; 5] = [
     "iSampleRate",
 ];
 
-// Custom error for failing to load shaders
+// Custom error for failing to load shaders.
 #[derive(Debug)]
 pub struct LoadShaderError {
     shadername: String,
@@ -40,7 +40,7 @@ impl fmt::Display for LoadShaderError {
 }
 impl Error for LoadShaderError {}
 
-// Custom error for failing to find example shaders
+// Custom error for failing to find example shaders.
 #[derive(Debug)]
 pub struct FindExampleShaderError {
     example: String,
@@ -59,7 +59,7 @@ impl fmt::Display for FindExampleShaderError {
     }
 }
 
-// Custom error for specifying invalid shader id
+// Custom error for specifying invalid shader id.
 #[derive(Debug)]
 pub struct InvalidShaderIdError {
     id: String,
@@ -76,7 +76,7 @@ impl fmt::Display for InvalidShaderIdError {
     }
 }
 
-// Custom error for failing to save downloaded shader
+// Custom error for failing to save downloaded shader.
 #[derive(Debug)]
 pub struct SaveShaderError {
     shadername: String,
@@ -97,7 +97,7 @@ impl fmt::Display for SaveShaderError {
     }
 }
 
-// Custom error for attempting to run a shader with unsupported uniforms
+// Custom error for attempting to run a shader with unsupported uniforms.
 #[derive(Debug)]
 pub struct UnsupportedUniformError {
     unsupported_uniforms: Vec<String>,

@@ -40,10 +40,10 @@ gfx_defines! {
     }
 
     pipeline pipe {
-        // Vertex buffer
+        // Vertex buffer.
         vbuf: gfx::VertexBuffer<Vertex> = (),
 
-        // Uniforms
+        // Uniforms.
         i_global_time: gfx::Global<f32> = "iGlobalTime",
         i_time: gfx::Global<f32> = "iTime",
         i_resolution: gfx::Global<[f32; 3]> = "iResolution",
@@ -54,16 +54,16 @@ gfx_defines! {
         i_channel2: gfx::TextureSampler<[f32; 4]> = "iChannel2",
         i_channel3: gfx::TextureSampler<[f32; 4]> = "iChannel3",
 
-        // Output color
+        // Output color.
         frag_color: gfx::RenderTarget<ColorFormat> = "fragColor",
     }
 }
 
 const SCREEN: [Vertex; 4] = [
-    Vertex { pos: [1.0, 1.0] },   // Top right
-    Vertex { pos: [-1.0, 1.0] },  // Top left
-    Vertex { pos: [-1.0, -1.0] }, // Bottom left
-    Vertex { pos: [1.0, -1.0] },  // Bottom right
+    Vertex { pos: [1.0, 1.0] },   // Top right.
+    Vertex { pos: [-1.0, 1.0] },  // Top left.
+    Vertex { pos: [-1.0, -1.0] }, // Bottom left.
+    Vertex { pos: [1.0, -1.0] },  // Bottom right.
 ];
 
 const SCREEN_INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
@@ -73,13 +73,13 @@ const CLEAR_COLOR: [f32; 4] = [1.0; 4];
 pub fn run(av: ArgValues) -> error::Result<()> {
     let (mut width, mut height) = (av.width, av.height);
 
-    // Load vertex and fragment shaders into byte buffers
+    // Load vertex and fragment shaders into byte buffers.
     let vert_src_buf = loader::load_vertex_shader();
     let frag_src_buf = match av.getid {
         Some(ref id) => {
             let (_, shadercode) = download::download(id)?;
 
-            // Don't run default shader if downloading (with no --run flag)
+            // Don't run default shader if downloading (with no --run flag).
             if av.getid.is_some() && !av.andrun {
                 return Ok(());
             }
@@ -94,13 +94,13 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     };
 
     let (tx, rx) = channel();
-    let mut watcher = watcher(tx, Duration::from_millis(250)).expect("couldn't initialise notify");
+    let mut watcher = watcher(tx, Duration::from_millis(250)).expect("Could not initialise notify");
 
     let shader_basename = av.shaderpath.as_ref().map(|path| {
         let path = Path::new(&path);
         watcher
             .watch(path.parent().unwrap(), RecursiveMode::NonRecursive)
-            .expect("couldn't register inotify watch");
+            .expect("Could not register inotify watch");
         path.file_name().unwrap().to_os_string()
     });
 
@@ -142,7 +142,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let (vertex_buffer, slice) =
         factory.create_vertex_buffer_with_slice(&SCREEN, &SCREEN_INDICES[..]);
 
-    // Load textures
+    // Load textures.
     let texture0 = loader::load_texture(&TextureId::Zero, &av.texture0path, &mut factory)?;
     let texture1 = loader::load_texture(&TextureId::One, &av.texture1path, &mut factory)?;
     let texture2 = loader::load_texture(&TextureId::Two, &av.texture2path, &mut factory)?;
@@ -151,7 +151,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
     let needs_mipmap =
         |mode: FilterMethod| mode != FilterMethod::Scale && mode != FilterMethod::Bilinear;
 
-    // generate mipmaps if they're needed
+    // Generate mipmaps if needed.
     if needs_mipmap(av.filter0) {
         encoder.generate_mipmap(&texture0)
     };
@@ -240,7 +240,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                     ..
                 } => {
                     mx = cursor_position.x as f32;
-                    my = height - cursor_position.y as f32; // Flip y-axis
+                    my = height - cursor_position.y as f32; // Flip y-axis.
                 }
 
                 WindowEvent::MouseInput { state, button, .. } => {
@@ -255,7 +255,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                 _ => (),
             }
         }
-        // notify handling
+        // Notify handling.
         shader_modified |= match shader_basename.is_some() {
             false => false,
             true => {
@@ -266,8 +266,8 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                     match rx.try_recv() {
                         Err(TryRecvError::Empty) => break,
 
-                        // we handle both create and write here because some text editors write
-                        // the modified file to a tmpfile then move it
+                        // We handle both create and write here because some text editors write the
+                        // modified file to a temp file before moving it.
                         Ok(DebouncedEvent::Create(ref path))
                         | Ok(DebouncedEvent::Write(ref path))
                         | Ok(DebouncedEvent::Rename(_, ref path))
@@ -281,7 +281,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
                         }
 
                         Err(TryRecvError::Disconnected) => {
-                            println!(" !! watch disconnected");
+                            println!("Watch disconnected");
                             break;
                         }
                     }
@@ -294,17 +294,17 @@ pub fn run(av: ArgValues) -> error::Result<()> {
         // Attempt to reload the shader if it has been modified. In the event that the new version
         // does not load/compile properly, the old version will continue running.
         if shader_modified {
-            // Reload fragment shader into byte buffer
+            // Reload fragment shader into byte buffer.
             match loader::load_fragment_shader(&av) {
                 Ok(frag_src_res) => {
                     let frag_src_buf = frag_src_res.as_slice();
 
-                    // Recreate pipeline
+                    // Recreate pipeline.
                     match factory.create_pipeline_simple(&vert_src_buf, frag_src_buf, pipe::new()) {
                         Ok(new_pso) => {
                             pso = new_pso;
 
-                            // Reset uniforms
+                            // Reset uniforms.
                             data.i_global_time = 0.0;
                             data.i_time = 0.0;
                             data.i_resolution = [width, height, width / height];
@@ -322,7 +322,7 @@ pub fn run(av: ArgValues) -> error::Result<()> {
             }
         }
 
-        // Mouse
+        // Mouse.
         if current_mouse == ElementState::Pressed {
             xyzw[0] = mx;
             xyzw[1] = my;
@@ -336,20 +336,20 @@ pub fn run(av: ArgValues) -> error::Result<()> {
         }
         data.i_mouse = xyzw;
 
-        // Elapsed time
+        // Elapsed time.
         let elapsed = start_time.elapsed();
         let elapsed_ms = (elapsed.as_secs() * 1000) + u64::from(elapsed.subsec_millis());
         let elapsed_sec = (elapsed_ms as f32) / 1000.0;
         data.i_global_time = elapsed_sec;
         data.i_time = elapsed_sec;
 
-        // Resolution
+        // Resolution.
         data.i_resolution = [width, height, width / height];
 
-        // Frame
+        // Frame.
         data.i_frame += 1;
 
-        // Draw
+        // Draw.
         encoder.clear(&data.frag_color, CLEAR_COLOR);
         encoder.draw(&slice, &pso, &data);
         encoder.flush(&mut device);

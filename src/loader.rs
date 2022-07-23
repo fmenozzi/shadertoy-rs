@@ -11,21 +11,21 @@ use std::path::Path;
 use gfx;
 use image;
 
-// Default shaders
+// Default shaders.
 pub static DEFAULT_VERT_SRC_BUF: &[u8] = include_bytes!("../shaders/default.vert");
 pub static DEFAULT_FRAG_SRC_STR: &str = include_str!("../shaders/default.frag");
 
-// Default textures
+// Default textures.
 pub static DEFAULT_TEXTURE0_BUF: &[u8] = include_bytes!("../textures/01-brickwall.jpg");
 pub static DEFAULT_TEXTURE1_BUF: &[u8] = include_bytes!("../textures/02-landscape.jpg");
 pub static DEFAULT_TEXTURE2_BUF: &[u8] = include_bytes!("../textures/03-whitenoise.jpg");
 pub static DEFAULT_TEXTURE3_BUF: &[u8] = include_bytes!("../textures/04-woodgrain.jpg");
 
-// Example shaders
+// Example shaders.
 pub static EXAMPLE_SEASCAPE_STR: &str = include_str!("../examples/seascape.frag");
 pub static EXAMPLE_ELEMENTAL_RING_STR: &str = include_str!("../examples/elemental-ring.frag");
 
-// Fragment shader prefix
+// Fragment shader prefix.
 const PREFIX: &str = "
     #version 150 core
 
@@ -43,7 +43,7 @@ const PREFIX: &str = "
     out vec4 fragColor;
 ";
 
-// Fragment shader suffix
+// Fragment shader suffix.
 const SUFFIX: &str = "
     void main() {
         mainImage(fragColor, fragCoord);
@@ -66,7 +66,7 @@ pub fn load_fragment_shader(av: &ArgValues) -> error::Result<Vec<u8>> {
             _ => return Err(FindExampleShaderError::new(example.as_str()).into()),
         }
     } else {
-        // Read fragment shader from file into String buffer
+        // Read fragment shader from file into String buffer.
         match av.shaderpath {
             Some(ref shaderpath) => {
                 let mut frag_src_str = String::new();

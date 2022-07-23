@@ -7,22 +7,22 @@ pub struct ArgValues {
     pub width: f32,
     pub height: f32,
 
-    // None if using default fragment shader
+    // Path to the shader. None if using default fragment shader.
     pub shaderpath: Option<String>,
 
-    // None if using default textures
+    // Path to the n-th texture. None if using default textures.
     pub texture0path: Option<String>,
     pub texture1path: Option<String>,
     pub texture2path: Option<String>,
     pub texture3path: Option<String>,
 
-    // Texture wrapping. Defaults to "clamp" if unspecified.
+    // Wrap mode for the n-th texture. Defaults to "clamp" if unspecified.
     pub wrap0: WrapMode,
     pub wrap1: WrapMode,
     pub wrap2: WrapMode,
     pub wrap3: WrapMode,
 
-    // Filter method. Defaults to "mipmap" if unspecified.
+    // Filter method for the n-th texture. Defaults to "mipmap" if unspecified.
     pub filter0: FilterMethod,
     pub filter1: FilterMethod,
     pub filter2: FilterMethod,
@@ -32,13 +32,13 @@ pub struct ArgValues {
     // "anisotropic" filter method.
     pub anisotropic_max: u8,
 
-    // Some(name) if running an example
+    // Some(name) if running an example.
     pub examplename: Option<String>,
 
-    // Some(id) if downloading a shader
+    // Shadertoy id if downloading a shader.
     pub getid: Option<String>,
 
-    // Some(title) if custom window title is specified.
+    // Custom window title. Defaults to "{shader name} - shadertoy-rs".
     pub title: Option<String>,
 
     // True if also running downloaded shader.
@@ -47,29 +47,30 @@ pub struct ArgValues {
 
 impl ArgValues {
     pub fn from_cli() -> error::Result<ArgValues> {
-        // Load CLI matches
+        // Load CLI matches.
         let yaml = load_yaml!("cli.yml");
         let matches = App::from_yaml(yaml).get_matches();
 
-        // Closure for converting &str to String
+        // Closure for converting &str to String.
         let str_to_string = |s: &str| s.to_string();
 
-        // Window dimensions
+        // Window dimensions.
         let width = matches.value_of("width").unwrap().parse()?;
         let height = matches.value_of("height").unwrap().parse()?;
 
-        // Check to see if they want an example run
+        // Check to see if they want an example run.
         let examplename = matches.value_of("example").map(&str_to_string);
 
-        // Fragment shader path
+        // Fragment shader path.
         let shaderpath = matches.value_of("shader").map(&str_to_string);
 
-        // Texture paths
+        // Texture paths.
         let texture0path = matches.value_of("texture0").map(&str_to_string);
         let texture1path = matches.value_of("texture1").map(&str_to_string);
         let texture2path = matches.value_of("texture2").map(&str_to_string);
         let texture3path = matches.value_of("texture3").map(&str_to_string);
 
+        // Texture wrapping.
         let get_wrap_mode = |wrap_mode: &Option<&str>| match wrap_mode.unwrap_or("clamp") {
             "clamp" => WrapMode::Clamp,
             "repeat" => WrapMode::Tile,
@@ -77,14 +78,12 @@ impl ArgValues {
             "border" => WrapMode::Border,
             _ => WrapMode::Clamp,
         };
-
-        // Texture wrapping
         let wrap0 = get_wrap_mode(&matches.value_of("wrap0"));
         let wrap1 = get_wrap_mode(&matches.value_of("wrap1"));
         let wrap2 = get_wrap_mode(&matches.value_of("wrap2"));
         let wrap3 = get_wrap_mode(&matches.value_of("wrap3"));
 
-        // Anistropic filter max value
+        // Anistropic filter max value.
         let anisotropic_max = matches
             .value_of("anisotropic_max")
             .unwrap_or("1")
@@ -92,6 +91,7 @@ impl ArgValues {
             .unwrap_or(1)
             .clamp(1, 16);
 
+        // Texture filtering.
         let get_filter_mode = |filter_mode: &Option<&str>| match filter_mode.unwrap_or("mipmap") {
             "scale" => FilterMethod::Scale,
             "mipmap" => FilterMethod::Mipmap,
@@ -100,17 +100,15 @@ impl ArgValues {
             "anisotropic" => FilterMethod::Anisotropic(anisotropic_max),
             _ => FilterMethod::Mipmap,
         };
-
-        // Texture wrapping
         let filter0 = get_filter_mode(&matches.value_of("filter0"));
         let filter1 = get_filter_mode(&matches.value_of("filter1"));
         let filter2 = get_filter_mode(&matches.value_of("filter2"));
         let filter3 = get_filter_mode(&matches.value_of("filter3"));
 
-        // Window title
+        // Window title.
         let title = matches.value_of("title").map(&str_to_string);
 
-        // Check to see if they want to download a shader (and then run it)
+        // Check to see if they want to download a shader (and then run it).
         let (getid, andrun) = if let Some(getmatches) = matches.subcommand_matches("get") {
             (
                 getmatches.value_of("id").map(&str_to_string),
