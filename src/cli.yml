@@ -118,3 +118,8 @@ args:
         short: t
         takes_value: true
         help: Sets the window title
+    - force_srgb_off:
+          long: force_srgb_off
+          takes_value: false
+          required: false
+          help: Forces srgb to be off. (Use this you have color blending issues)

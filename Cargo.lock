@@ -2591,6 +2591,7 @@ dependencies = [
  "env_logger",
  "gfx",
  "gfx_device_gl",
+ "gfx_gl",
  "gfx_window_glutin",
  "glutin 0.27.0",
  "image",

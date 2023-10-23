@@ -43,6 +43,9 @@ pub struct ArgValues {
 
     // True if also running downloaded shader.
     pub andrun: bool,
+
+    // True if we should force disable srgb
+    pub force_srgb_off: bool,
 }
 
 impl ArgValues {
@@ -118,6 +121,8 @@ impl ArgValues {
             (None, false)
         };
 
+        let force_srgb_off = matches.is_present("force_srgb_off");
+
         Ok(ArgValues {
             width,
             height,
@@ -139,6 +144,7 @@ impl ArgValues {
             getid,
             andrun,
             title,
+            force_srgb_off,
         })
     }
 }

@@ -133,6 +133,14 @@ pub fn run(av: ArgValues) -> error::Result<()> {
             .unwrap()
             .init_gfx::<ColorFormat, DepthFormat>();
 
+    if av.force_srgb_off {
+        unsafe {
+            device.with_gl(|gl| {
+                gl.Disable(gfx_gl::FRAMEBUFFER_SRGB);
+            })
+        }
+    }
+
     let mut encoder = gfx::Encoder::from(factory.create_command_buffer());
 
     let mut pso = factory
