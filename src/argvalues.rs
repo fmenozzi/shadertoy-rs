@@ -121,7 +121,7 @@ impl ArgValues {
             (None, false)
         };
 
-        let force_srgb_off = matches.is_present("force_srgb_off");
+        let force_srgb_off = matches.is_present("force-srgb-off");
 
         Ok(ArgValues {
             width,

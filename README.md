@@ -49,7 +49,7 @@ USAGE:
     shadertoy [FLAGS] [OPTIONS] [shader] [SUBCOMMAND]
 
 FLAGS:
-        --force_srgb_off    Forces srgb to be off. (Use this you have color blending issues)
+        --force-srgb-off    Forces SRGB to be off (replicates shadertoy.com color blending)
     -h, --help              Prints help information
     -V, --version           Prints version information
 
