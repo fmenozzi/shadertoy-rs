@@ -46,11 +46,12 @@ Federico Menozzi <federicogmenozzi@gmail.com>
 Desktop client for Shadertoy
 
 USAGE:
-    shadertoy [OPTIONS] [shader] [SUBCOMMAND]
+    shadertoy [FLAGS] [OPTIONS] [shader] [SUBCOMMAND]
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+        --force_srgb_off    Forces SRGB to be off (replicates shadertoy.com color blending)
+    -h, --help              Prints help information
+    -V, --version           Prints version information
 
 OPTIONS:
     -e, --example <example>      Run example shader from examples/ directory
